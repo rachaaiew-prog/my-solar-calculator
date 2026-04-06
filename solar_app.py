@@ -40,7 +40,6 @@ def get_simulated_grid_data():
     })
     
     # 2. ข้อมูลผู้ขอใช้ไฟติดตั้ง Wall Charger (5 ราย)
-    # แก้ไข Error: มั่นใจว่าทุกลิสต์มีความยาวเท่ากับ 5 (จำนวนแถว)
     ev_data = pd.DataFrame({
         'id': [f'EV-{i:02d} ({tr_name})' for i in range(1, 6)],
         'lat': [base_lat + 0.002, base_lat + 0.0015, base_lat - 0.001, base_lat - 0.002, base_lat + 0.0005],
@@ -81,7 +80,7 @@ st.markdown("""
     .app-header {
         background: #6d28d9; /* สีม่วงเข้ม */
         padding: 2rem;
-        margin: -1rem -5rem 2rem -5rem;
+        margin: -1rem -5rem 1.5rem -5rem;
         border-bottom: 5px solid #4c1d95;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
@@ -169,30 +168,7 @@ st.markdown("""
     </div>
     """, unsafe_allow_html=True)
 
-# --- Top Summary Bar ---
-top_col1, top_col2 = st.columns([1, 1])
-with top_col1:
-    st.markdown("""
-        <div class="analysis-card" style="display: flex; align-items: center; gap: 1rem;">
-            <div style="background: #f5f3ff; padding: 12px; border-radius: 10px; font-size: 1.5rem;">🏢</div>
-            <div>
-                <small style="color: #6b7280">โหมดการทำงาน</small><br>
-                <span style="font-size: 1.1rem; font-weight: 600; color: #6d28d9;">วิเคราะห์ระบบจำหน่าย</span>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-with top_col2:
-    st.markdown("""
-        <div class="analysis-card" style="display: flex; align-items: center; gap: 1rem;">
-            <div style="background: #fff7ed; padding: 12px; border-radius: 10px; font-size: 1.5rem;">⚡</div>
-            <div>
-                <small style="color: #6b7280">หม้อแปลงเป้าหมาย</small><br>
-                <span style="font-size: 1.1rem; font-weight: 600; color: #9a3412;">TR 250 (บ้านหนองแวง) 56-02564</span>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
+# --- Tab Navigation ---
 tab1, tab2 = st.tabs(["🏠 วิเคราะห์การติดตั้งรายบ้าน", "📊 โหลดหม้อแปลง (Grid Balance)"])
 
 with tab1:
@@ -258,7 +234,7 @@ with tab1:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
-    tr_id = "TR 250 (บ้านหนองแวง)"
+    tr_id = "TR 250 (บ้านหนองแวง) 56-02564"
     st.markdown(f"### 📍 แผนภูมิโครงข่ายไฟฟ้า {tr_id}")
     
     grid_df = get_simulated_grid_data()
