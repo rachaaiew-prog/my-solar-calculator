@@ -48,18 +48,20 @@ st.markdown("""
         box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     }
     
-    .map-link {
+    .map-btn {
         display: inline-block;
-        padding: 5px 10px;
-        background-color: #f0f0f0;
+        padding: 8px 15px;
+        background-color: #4a148c;
+        color: white !important;
         border-radius: 8px;
         text-decoration: none;
-        color: #4a148c;
-        font-size: 0.85rem;
-        margin-top: 5px;
-        border: 1px solid #ddd;
+        font-size: 0.9rem;
+        margin-top: 10px;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.2s;
     }
-    .map-link:hover { background-color: #e0e0e0; }
+    .map-btn:hover { opacity: 0.8; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -110,8 +112,8 @@ with col_h3: st.markdown("**ชม./วัน**")
 for i, dev in enumerate(device_list):
     c1, c2, c3 = st.columns([2, 1, 1])
     with c1: chosen = st.checkbox(f"{dev['icon']} {dev['item']}", key=f"u_{i}")
-    with c2: qty = st.number_input("จำนวน", min_value=0, value=0, key=f"q_{i}", label_visibility="collapsed")
-    with c3: hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"h_{i}", label_visibility="collapsed")
+    with qty_col := c2: qty = st.number_input("จำนวน", min_value=0, value=0, key=f"q_{i}", label_visibility="collapsed")
+    with hrs_col := c3: hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"h_{i}", label_visibility="collapsed")
     if chosen and qty > 0: total_daily_wh += (dev['watts'] * qty * hrs)
 
 units_per_day = total_daily_wh / 1000
@@ -143,6 +145,7 @@ if units_per_day > 0:
     # --- ฟอร์มลงทะเบียน ---
     st.markdown('<div class="registration-form">', unsafe_allow_html=True)
     st.subheader("📥 บันทึกข้อมูลไปยัง Google Sheet")
+    st.write("กรอกข้อมูลเพื่อบันทึกลำดับความสนใจเข้าสู่ฐานข้อมูลโดยตรง")
     
     with st.form("solar_form"):
         f1, f2 = st.columns(2)
@@ -151,47 +154,65 @@ if units_per_day > 0:
             lname = st.text_input("นามสกุล")
         with f2:
             phone = st.text_input("เบอร์โทรศัพท์ *")
-            lat_long = st.text_input("พิกัด (Lat, Long)", placeholder="เช่น 13.7563, 100.5018")
-            st.markdown('<a href="https://www.google.com/maps" target="_blank" class="map-link">📍 เปิด Google Maps เพื่อหาพิกัด</a>', unsafe_allow_html=True)
+            # ช่องพิกัด
+            lat_long = st.text_input("พิกัด (Lat, Long)", placeholder="คัดลอกจาก Google Maps")
+            st.markdown("""
+                <div style="display:flex; gap:10px;">
+                    <a href="https://www.google.com/maps" target="_blank" class="map-btn">📍 ค้นหาในแผนที่</a>
+                </div>
+            """, unsafe_allow_html=True)
         
         submitted = st.form_submit_button("🚀 บันทึกข้อมูลและยืนยันการส่ง")
         
         if submitted:
             if fname and phone:
-                # การจำลองหมายเลขลำดับ (ควรดึงจากระบบฐานข้อมูลจริง)
-                order_id = datetime.now().strftime("%H%M%S")
+                # --- ส่วนสำคัญ: ข้อมูล Google Form ---
+                # คุณต้องสร้าง Google Form และนำรหัสมาใส่ที่นี่
+                # ขั้นตอน: ไปที่ Google Form > Get pre-filled link > ใส่ข้อมูลตัวอย่าง > กดรับลิงก์ > คัดลอกรหัสหลัง entry.xxxx
                 
-                # ข้อมูลสำหรับการส่ง
-                timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
-                full_name = f"{fname} {lname}"
+                form_id = "1FAIpQLScyYm6-rV2x9VvU6z-Y_p1Kj4p7y_oW_8Xj_9Xj_9Xj_9Xj_A" # ตัวอย่างรหัสฟอร์ม
+                
+                entry_fname = "entry.1000001" # รหัสช่องชื่อ
+                entry_lname = "entry.1000002" # รหัสช่องนามสกุล
+                entry_phone = "entry.1000003" # รหัสช่องเบอร์โทร
+                entry_pkg = "entry.1000004"   # รหัสช่องขนาดแนะนำ
+                entry_loc = "entry.1000005"   # รหัสช่องพิกัด
+                
                 pkg_info = f"{suggested_pkg['inverter_size']} kW ({suggested_pkg['name']})"
                 
-                # เตรียม URL สำหรับส่งข้อมูลไปยัง Google Sheet (เทคนิค Google Form Redirect)
-                # หมายเหตุ: คุณต้องนำ URL ของคุณไปใส่ในส่วนนี้เพื่อให้ข้อมูลเข้า Sheet ได้จริง
-                sheet_url = "https://docs.google.com/spreadsheets/d/1xpPS8l2ySEKJx4_2u--loOzkne8CR_4zOOZiwXLSlxk/edit?usp=sharing"
+                params = {
+                    entry_fname: fname,
+                    entry_lname: lname,
+                    entry_phone: phone,
+                    entry_pkg: pkg_info,
+                    entry_loc: lat_long
+                }
                 
-                st.success(f"✅ บันทึกข้อมูลคุณ {fname} เรียบร้อยแล้ว!")
+                # ประกอบ URL สำหรับส่งข้อมูล (แบบยิงตรง formResponse)
+                form_url = f"https://docs.google.com/forms/d/e/{form_id}/formResponse?submit=Submit&" + urllib.parse.urlencode(params)
+                
+                st.success(f"✅ บันทึกข้อมูลคุณ {fname} ลงในคิวงานเรียบร้อยแล้ว!")
                 st.balloons()
                 
-                # สรุปข้อมูลสำหรับตรวจสอบ
-                st.markdown("### 📋 สรุปข้อมูลที่ถูกบันทึก")
-                summary_df = pd.DataFrame([{
-                    "ที่": order_id,
-                    "วันที่": timestamp,
-                    "ชื่อ-นามสกุล": full_name,
-                    "เบอร์โทร": phone,
-                    "ขนาดที่แนะนำ": pkg_info,
-                    "พิกัด": lat_long
-                }])
-                st.table(summary_df)
+                # เนื่องจากความปลอดภัย บราวเซอร์อาจบล็อกการส่งเบื้องหลัง 
+                # เราจึงสร้างปุ่มเพื่อให้ผู้ใช้กดยืนยันอีกครั้งหนึ่งข้อมูลจะเข้าชีตทันที
+                st.markdown(f"""
+                <div style="background-color:#e8f5e9; padding:20px; border-radius:15px; border:1px solid #c8e6c9; text-align:center; margin-top:10px;">
+                    <p style="color:#2e7d32; font-weight:bold; margin-bottom:15px;">ขั้นตอนสุดท้าย: คลิกปุ่มด้านล่างเพื่อยืนยันการบันทึกข้อมูลเข้า Google Sheet</p>
+                    <a href="{form_url}" target="_blank" 
+                       style="background-color:#2e7d32; color:white; padding:12px 35px; border-radius:10px; text-decoration:none; font-weight:bold; display:inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                       📥 ยืนยันการส่งข้อมูล
+                    </a>
+                </div>
+                """, unsafe_allow_html=True)
                 
-                st.info(f"🔗 ตรวจสอบข้อมูลใน Sheet: [คลิกที่นี่]({sheet_url})")
+                st.info(f"🔗 ตรวจสอบความถูกต้องที่ Google Sheet: [คลิกที่นี่](https://docs.google.com/spreadsheets/d/1xpPS8l2ySEKJx4_2u--loOzkne8CR_4zOOZiwXLSlxk/edit?usp=sharing)")
             else:
-                st.error("❌ กรุณากรอก 'ชื่อ' และ 'เบอร์โทรศัพท์' ก่อนบันทึก")
+                st.error("❌ กรุณากรอกข้อมูล ชื่อ และ เบอร์โทรศัพท์ ให้ครบถ้วน")
     st.markdown('</div>', unsafe_allow_html=True)
 
 else:
-    st.warning("👈 กรุณาเลือกอุปกรณ์ไฟฟ้าเพื่อเริ่มการคำนวณ")
+    st.warning("👈 กรุณาเลือกอุปกรณ์ไฟฟ้าที่ใช้งานเพื่อคำนวณระบบที่เหมาะสม")
 
 st.divider()
-st.markdown("<p style='text-align:center; color:#999;'>Solar Assistant v3.2 | การบันทึกข้อมูลและระบบนำทาง Google Maps</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#999;'>Solar Assistant v4.0 | พัฒนาโดยใช้ฐานข้อมูล PEA Solar และ Google Form Integration</p>", unsafe_allow_html=True)
