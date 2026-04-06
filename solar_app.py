@@ -97,6 +97,14 @@ st.markdown("""
         box-shadow: 0 12px 30px rgba(106, 17, 203, 0.1);
     }
     
+    /* สไตล์สำหรับแถวที่เลือก (Selected Device Row) */
+    .selected-row {
+        background-color: #e1dbff !important;
+        border-radius: 10px;
+        border: 1px solid #7b1fa2;
+        transition: all 0.3s ease;
+    }
+
     /* Tab Style */
     .stTabs [data-baseweb="tab-list"] {
         gap: 24px;
@@ -168,6 +176,8 @@ device_list = [
     {"item": "แอร์ 12,000 BTU", "watts": 1100, "icon": "❄️"},
     {"item": "แอร์ 18,000 BTU", "watts": 1600, "icon": "❄️"},
     {"item": "แอร์ 24,000 BTU", "watts": 2100, "icon": "❄️"},
+    {"item": "Wall Charger 7 kW", "watts": 7000, "icon": "🔌"},
+    {"item": "Wall Charger 22 kW", "watts": 22000, "icon": "⚡"},
     {"item": "ตู้เย็น", "watts": 150, "icon": "🧊"},
     {"item": "ทีวี/คอมพิวเตอร์", "watts": 250, "icon": "📺"},
     {"item": "พัดลม", "watts": 60, "icon": "🌬️"},
@@ -182,16 +192,33 @@ with col_h2: st.markdown("**จำนวน**")
 with col_h3: st.markdown("**ชั่วโมง/วัน**")
 
 for i, dev in enumerate(device_list):
-    c1, c2, c3 = st.columns([2, 1, 1])
-    with c1:
-        is_used = st.checkbox(f"{dev['icon']} {dev['item']}", key=f"use_{i}")
-    with c2:
-        qty = st.number_input("จำนวน", min_value=0, value=0, key=f"qty_{i}", label_visibility="collapsed")
-    with c3:
-        hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"hrs_{i}", label_visibility="collapsed")
+    # ตรวจสอบสถานะ checkbox ก่อน เพื่อใช้กำหนดสีพื้นหลัง
+    # ใน Streamlit เราจะใช้วิธีการใช้ Container เพื่อคลุมแถว
+    row_container = st.container()
     
-    if is_used and qty > 0:
-        total_daily_wh += (dev['watts'] * qty * hrs)
+    # ดึงค่าสถานะจาก session state ถ้ามี
+    is_selected = st.session_state.get(f"use_{i}", False)
+    
+    # หากเลือกอยู่ ให้ใส่ CSS Class สำหรับสีเข้ม (ผ่าน markdown ใน container)
+    if is_selected:
+        st.markdown(f'<div class="selected-row">', unsafe_allow_html=True)
+
+    with row_container:
+        c1, c2, c3 = st.columns([2, 1, 1])
+        with c1:
+            st.checkbox(f"{dev['icon']} {dev['item']}", key=f"use_{i}")
+        with c2:
+            qty = st.number_input("จำนวน", min_value=0, value=0, key=f"qty_{i}", label_visibility="collapsed")
+        with c3:
+            hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"hrs_{i}", label_visibility="collapsed")
+        
+        # คืนค่าสถานะที่อัปเดตแล้ว
+        is_used = st.session_state.get(f"use_{i}", False)
+        if is_used and qty > 0:
+            total_daily_wh += (dev['watts'] * qty * hrs)
+            
+    if is_selected:
+        st.markdown('</div>', unsafe_allow_html=True)
 
 units_per_day = total_daily_wh / 1000
 
