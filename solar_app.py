@@ -20,7 +20,7 @@ pea_packages = [
     {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000}
 ]
 
-# --- ฟังก์ชันจำลองข้อมูลสำหรับ Heat Map (เน้นหม้อแปลงเฉพาะ: Solar 2, EV 5) ---
+# --- ฟังก์ชันจำลองข้อมูลสำหรับ Heat Map (เน้นหม้อแปลงเฉพาะ) ---
 def get_simulated_grid_data():
     # พิกัดตำแหน่งหม้อแปลง (ศูนย์กลาง)
     base_lat, base_lon = 16.7115, 103.7477
@@ -56,121 +56,197 @@ def get_simulated_grid_data():
     df['gmaps_link'] = df.apply(lambda row: f"https://www.google.com/maps?q={row['lat']},{row['lon']}", axis=1)
     return df
 
-# --- Custom CSS ---
+# --- Custom CSS เพื่อปรับแต่ง UI ตามรูปภาพ ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
-    html, body, [class*="css"] { font-family: 'Kanit', sans-serif; }
     
-    /* ปรับพื้นหลังหลักเป็นโทนสีน้ำเงิน */
+    /* โครงสร้างพื้นฐาน */
+    html, body, [class*="css"] { 
+        font-family: 'Kanit', sans-serif; 
+        color: white !important;
+    }
+    
+    /* พื้นหลังไล่เฉดสีน้ำเงินม่วงเข้ม */
     .stApp { 
-        background-color: #0f172a; 
-        color: #f8fafc;
+        background: linear-gradient(180deg, #1e1b4b 0%, #111827 100%);
     }
     
-    /* ปรับสีตัวอักษรใน Sidebar */
+    /* Sidebar */
     [data-testid="stSidebar"] {
-        background-color: #1e293b;
+        background-color: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
-    [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] label {
-        color: #f8fafc;
-    }
-
-    .app-header {
-        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
-        padding: 2.5rem; color: white; border-radius: 20px; margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(30, 58, 138, 0.4);
-    }
-    
-    .analysis-card {
-        background: #1e293b; border-radius: 15px; padding: 20px;
-        border-left: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        margin-bottom: 20px;
-        color: #f8fafc;
-    }
-    
-    .registration-form {
-        background-color: #1e293b; padding: 30px; border-radius: 20px;
-        border: 1px solid #334155; margin-top: 25px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-        color: #f8fafc;
-    }
-
-    /* ปรับสี Tab */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #1e293b;
-        border-radius: 10px 10px 0px 0px;
-        color: #94a3b8;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #3b82f6 !important;
+    [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] label, [data-testid="stSidebar"] h2 {
         color: white !important;
     }
 
-    /* ปุ่มวิเคราะห์สินค้า */
+    /* Header Section */
+    .app-header {
+        background: transparent;
+        padding: 1rem 0;
+        margin-bottom: 2rem;
+    }
+    .header-title {
+        font-size: 2.8rem;
+        font-weight: 600;
+        color: white;
+        margin: 0;
+    }
+    .header-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* กล่องข้อมูลแบบ Card (สีเทาเข้มโปร่งแสง) */
+    .analysis-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 20px;
+        backdrop-filter: blur(5px);
+    }
+    
+    .registration-form {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 35px;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 25px;
+    }
+
+    /* ปรับแต่ง Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 5px;
+        gap: 10px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        padding: 10px 20px;
+        border: none;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #312e81 !important; /* สีน้ำเงินม่วงเข้ม */
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ปุ่มวิเคราะห์สีส้มทอง */
     .product-btn {
         display: block; width: 100%; text-align: center;
-        background: linear-gradient(90deg, #f59e0b, #d97706);
-        color: white !important; padding: 20px; border-radius: 15px;
-        text-decoration: none; font-weight: bold; font-size: 1.2rem;
-        margin-top: 20px; box-shadow: 0 5px 15px rgba(217, 119, 6, 0.4);
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        color: #1e1b4b !important; padding: 18px; border-radius: 16px;
+        text-decoration: none; font-weight: 600; font-size: 1.1rem;
+        margin-top: 20px;
+        transition: transform 0.2s;
+    }
+    .product-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
     }
     
-    /* แก้ไขสีปุ่มส่งข้อมูลใน Streamlit */
+    /* ปุ่มส่งข้อมูลสีเขียวพรีเมียม */
     div.stButton > button:first-child {
-        background-color: #10b981;
-        color: white;
-        border-radius: 12px;
+        background: linear-gradient(90deg, #10b981, #059669);
+        color: white !important;
+        border-radius: 14px;
         border: none;
-        padding: 10px 24px;
+        padding: 12px 30px;
         font-weight: 500;
-        transition: all 0.3s ease;
-    }
-    div.stButton > button:first-child:hover {
-        background-color: #059669;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-        border: none;
-        color: white;
+        width: 100%;
+        margin-top: 10px;
     }
     
-    /* ปรับสีฟอนต์ Metric */
+    /* ปรับแต่ง Input Fields */
+    input, textarea, select {
+        background-color: rgba(0, 0, 0, 0.2) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    /* Metrics */
     [data-testid="stMetricValue"] {
-        color: #3b82f6;
+        color: white !important;
+        font-size: 2rem !important;
+        font-weight: 600;
     }
     [data-testid="stMetricLabel"] {
-        color: #94a3b8;
+        color: rgba(255, 255, 255, 0.6) !important;
+    }
+    
+    /* DataFrame/Table */
+    .stDataFrame {
+        background-color: transparent !important;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # --- Header Section ---
-st.markdown(f"""
+st.markdown("""
     <div class="app-header">
-        <div style="display: flex; align-items: center; gap: 2rem;">
-            <img src="https://lh3.googleusercontent.com/d/1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n" style="width:120px; border-radius:10px;">
-            <div>
-                <h1 style="color:white; margin:0; font-size:2.5rem;">Solar Assistant Pro</h1>
-                <p style="font-size:1.1rem; opacity:0.9;">วิเคราะห์โหลดหม้อแปลงไฟฟ้าจำหน่าย (Single Transformer Analysis)</p>
-            </div>
-        </div>
+        <h1 class="header-title">Solar Assistant Pro ☀️</h1>
+        <p class="header-subtitle">วิเคราะห์โหลดหม้อแปลงไฟฟ้าจำหน่าย (Single Transformer Analysis)</p>
     </div>
     """, unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["💡 วิเคราะห์การติดตั้งรายบ้าน", "🗺️ วิเคราะห์โหลดหม้อแปลง (Transformer Balance)"])
+# --- ข้อมูลสรุปด้านบน (Top Summary Bar) ---
+top_col1, top_col2 = st.columns([1, 1])
+with top_col1:
+    st.markdown("""
+        <div class="analysis-card" style="display: flex; align-items: center; gap: 1.5rem; padding: 15px 25px;">
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px;">🏠</div>
+            <div>
+                <small style="color: rgba(255,255,255,0.5)">Micro Solar (1 Phase)</small><br>
+                <span style="font-size: 1.2rem; font-weight: 500;">ระบบ 1 เฟส</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+with top_col2:
+    st.markdown("""
+        <div class="analysis-card" style="display: flex; align-items: center; gap: 1.5rem; padding: 15px 25px;">
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px;">⚡</div>
+            <div>
+                <small style="color: rgba(255,255,255,0.5)">หม้อแปลงเป้าหมาย</small><br>
+                <span style="font-size: 1.2rem; font-weight: 500;">TR 250 (บ้านหนองแวง) 56-02564</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+tab1, tab2 = st.tabs(["💡 วิเคราะห์การติดตั้งรายบ้าน", "📊 วิเคราะห์โหลดหม้อแปลง (Single Balance)"])
 
 with tab1:
     with st.sidebar:
-        st.header("⚙️ ตั้งค่าการคำนวณ")
+        st.markdown("### ⚙️ ตั้งค่าพารามิเตอร์")
         unit_price = st.number_input("ค่าไฟฟ้าเฉลี่ย (บาท/หน่วย)", value=4.7, step=0.1)
         phase = st.radio("ระบบไฟฟ้าที่บ้าน", ["1 Phase", "3 Phase"])
         st.divider()
         sun_hours = st.slider("ชั่วโมงแดดจัดเฉลี่ยต่อวัน", 3.0, 6.0, 4.2)
         system_loss = st.slider("System Loss (%)", 5, 30, 15) / 100
 
-    st.markdown("### 📝 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน (09:00 - 16:00)")
+    st.markdown("### 📝 รายการเครื่องใช้ไฟฟ้าช่วงกลางวัน")
     device_list = [
         {"item": "แอร์ 9,000 BTU (Inverter)", "watts": 800},
         {"item": "แอร์ 12,000 BTU (Inverter)", "watts": 1100},
@@ -182,23 +258,19 @@ with tab1:
     ]
 
     total_daily_wh = 0
-    col_h1, col_h2, col_h3 = st.columns([2, 1, 1])
-    with col_h1: st.markdown("**รายการเครื่องใช้ไฟฟ้า**")
-    with col_h2: st.markdown("**จำนวน (เครื่อง)**")
-    with col_h3: st.markdown("**ชม. ที่ใช้งาน**")
-
+    # แสดงเป็น Card รายการ
     for i, dev in enumerate(device_list):
-        c1, c2, c3 = st.columns([2, 1, 1])
-        with c1: chosen = st.checkbox(dev['item'], key=f"u_{i}")
-        with c2: qty = st.number_input("จำนวน", min_value=0, value=0, key=f"q_{i}", label_visibility="collapsed")
-        with c3: hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"h_{i}", label_visibility="collapsed")
-        if chosen and qty > 0: 
-            total_daily_wh += (dev['watts'] * qty * hrs)
+        with st.container():
+            c1, c2, c3 = st.columns([3, 2, 2])
+            with c1: chosen = st.checkbox(dev['item'], key=f"u_{i}")
+            with c2: qty = st.number_input(f"จำนวน (เครื่อง) - {i}", min_value=0, value=0, key=f"q_{i}", label_visibility="collapsed")
+            with c3: hrs = st.number_input(f"ชม. ใช้งาน - {i}", min_value=0, max_value=24, value=0, key=f"h_{i}", label_visibility="collapsed")
+            if chosen and qty > 0: 
+                total_daily_wh += (dev['watts'] * qty * hrs)
 
     units_per_day = total_daily_wh / 1000
 
     if units_per_day > 0:
-        st.divider()
         eff_factor = 1 - system_loss
         target_kw = units_per_day / (sun_hours * eff_factor)
         is_1p = phase == "1 Phase"
@@ -207,117 +279,83 @@ with tab1:
         saving_year = pkg['pv_size'] * sun_hours * eff_factor * unit_price * 365
         payback = pkg['price'] / saving_year
 
-        st.markdown("### 📊 สรุปผลการวิเคราะห์")
+        st.markdown("### 📊 ผลการวิเคราะห์ระบบที่เหมาะสม")
         m1, m2, m3, m4 = st.columns(4)
         with m1: st.metric("ขนาดแนะนำ", f"{pkg['inverter_size']} kW")
-        with m2: st.metric("งบประมาณ", f"{pkg['price']:,} บาท")
-        with m3: st.metric("คืนทุน", f"{payback:.1f} ปี")
-        with m4: st.metric("กำไร 25 ปี", f"{(saving_year * 25) - pkg['price']:,.0f} บาท")
-        st.markdown(f'<a href="https://peasolar.pea.co.th/our-products/" target="_blank" class="product-btn">🔍 ดูรายละเอียดสเปกอุปกรณ์ {pkg["inverter_size"]}kW</a>', unsafe_allow_html=True)
+        with m2: st.metric("งบประมาณ", f"{pkg['price']:,} ฿")
+        with m3: st.metric("ระยะคืนทุน", f"{payback:.1f} ปี")
+        with m4: st.metric("กำไรสะสม 25 ปี", f"{(saving_year * 25) - pkg['price']:,.0f} ฿")
+        
+        st.markdown(f'<a href="https://peasolar.pea.co.th/our-products/" target="_blank" class="product-btn">🔍 รายละเอียดอุปกรณ์ {pkg["inverter_size"]}kW</a>', unsafe_allow_html=True)
 
-        # --- ฟอร์มลงทะเบียนข้อมูลลูกค้า ---
+        # --- ฟอร์มลงทะเบียน ---
         st.markdown('<div class="registration-form">', unsafe_allow_html=True)
-        st.markdown("### 📞 ลงทะเบียนขอรับคำปรึกษา / สำรวจหน้างาน")
+        st.markdown("### 📞 ลงทะเบียนขอรับคำปรึกษา")
         col_f1, col_f2 = st.columns(2)
         with col_f1:
-            cust_name = st.text_input("ชื่อ-นามสกุล ผู้ติดต่อ")
+            cust_name = st.text_input("ชื่อ-นามสกุล")
             cust_phone = st.text_input("เบอร์โทรศัพท์")
         with col_f2:
-            cust_address = st.text_area("ที่อยู่ติดตั้ง / จุดสังเกต")
+            cust_address = st.text_area("สถานที่ติดตั้ง")
         
-        if st.button("ยืนยันข้อมูลและส่งเรื่อง", use_container_width=True):
+        if st.button("ยืนยันการส่งข้อมูล"):
             if cust_name and cust_phone:
-                st.success(f"ขอบคุณคุณ {cust_name} ระบบบันทึกข้อมูลเรียบร้อย เจ้าหน้าที่จะติดต่อกลับที่เบอร์ {cust_phone}")
-            else:
-                st.error("กรุณากรอกข้อมูลชื่อและเบอร์โทรศัพท์ให้ครบถ้วน")
+                st.success(f"บันทึกข้อมูลเรียบร้อยแล้ว!")
         st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.info("👆 กรุณาเลือกรายการเครื่องใช้ไฟฟ้าเพื่อให้ระบบเริ่มวิเคราะห์")
+        st.info("กรุณาเลือกรายการอุปกรณ์ไฟฟ้าเพื่อเริ่มการวิเคราะห์")
 
 with tab2:
     tr_full_id = "TR 250 (บ้านหนองแวง) 56-02564"
-    st.markdown(f"### 🗺️ Transformer {tr_full_id} Load Balance Map")
-    st.info(f"จำลองสถานการณ์: หม้อแปลง {tr_full_id} รองรับผู้ใช้ไฟที่มี Solar 2 ราย และ EV Charger 5 ราย")
+    st.markdown(f"### 🗺️ แผนภูมิภาระโหลดหม้อแปลง {tr_full_id}")
     
     grid_df = get_simulated_grid_data()
     solar_only = grid_df[grid_df['type'] == 'Solar PV Installed']
     ev_only = grid_df[grid_df['type'] == 'EV Wall Charger Request']
 
-    # คำนวณค่าทางสถิติสำหรับ Balance
-    total_solar_kw = solar_only['capacity_kw'].sum()
-    total_ev_kw = ev_only['capacity_kw'].sum()
-    avg_day_load_reduction = total_solar_kw * 0.7 
-    night_load_increase = total_ev_kw * 0.85 
-
     col_map, col_stat = st.columns([2.5, 1])
 
     with col_stat:
-        st.markdown(f"#### ⚡ {tr_full_id} Analytics")
+        st.markdown("#### 📈 ข้อมูลการวิเคราะห์")
+        total_solar = solar_only['capacity_kw'].sum()
+        total_ev = ev_only['capacity_kw'].sum()
+        
         st.markdown(f"""
         <div class="analysis-card">
-            <small style="color:#94a3b8;">ช่วงกลางวัน (ลดโหลดหม้อแปลง)</small><br>
-            <b>Net Load Δ: -{avg_day_load_reduction:.1f} kW</b><br>
-            <p style="font-size:0.8rem; color:#64748b;">Solar รวม: {total_solar_kw} kW (2 ราย)</p>
+            <small style="color: #60a5fa;">กลางวัน (Solar Impact)</small><br>
+            <span style="font-size:1.5rem;">-{total_solar * 0.7:.1f} kW</span>
         </div>
-        <div class="analysis-card" style="border-left-color: #10b981;">
-            <small style="color:#94a3b8;">ช่วง 22:00 น. (เพิ่มโหลดหม้อแปลง)</small><br>
-            <b>Net Load Δ: +{night_load_increase:.1f} kW</b><br>
-            <p style="font-size:0.8rem; color:#64748b;">EV รวม: {total_ev_kw} kW (5 ราย)</p>
+        <div class="analysis-card">
+            <small style="color: #f87171;">กลางคืน (EV Impact)</small><br>
+            <span style="font-size:1.5rem;">+{total_ev * 0.85:.1f} kW</span>
         </div>
         """, unsafe_allow_html=True)
         
-        balance_gap = night_load_increase - avg_day_load_reduction
-        st.error(f"**Transformer Stress:** {balance_gap:.1f} kW")
+        st.warning(f"ความเสี่ยงโหลดเกิน: {(total_ev * 0.85) - (total_solar * 0.7):.1f} kW")
 
     with col_map:
-        view_state = pdk.ViewState(latitude=16.7115, longitude=103.7477, zoom=15, pitch=40)
+        view_state = pdk.ViewState(latitude=16.7115, longitude=103.7477, zoom=15, pitch=45)
         scatterplot = pdk.Layer(
             "ScatterplotLayer", grid_df, get_position="[lon, lat]",
             get_fill_color="color_rgb", get_line_color="line_color",
-            get_radius=30, line_width_min_pixels=3, pickable=True
+            get_radius=40, line_width_min_pixels=2, pickable=True
         )
         tr_marker = pdk.Layer(
             "ScatterplotLayer", pd.DataFrame({'lat': [16.7115], 'lon': [103.7477]}),
-            get_position="[lon, lat]", get_fill_color=[59, 130, 246, 80],
-            get_radius=300, pickable=False
+            get_position="[lon, lat]", get_fill_color=[99, 102, 241, 100],
+            get_radius=250, pickable=False
         )
 
         st.pydeck_chart(pdk.Deck(
             map_style="mapbox://styles/mapbox/dark-v10",
             initial_view_state=view_state,
             layers=[tr_marker, scatterplot],
-            tooltip={"text": "{id}\nCapacity: {capacity_kw} kW\nPhase: {phase_connection}"}
+            tooltip={"text": "{id}\nType: {type}\nCapacity: {capacity_kw} kW"}
         ))
 
-    st.write("---")
-    st.subheader(f"📍 รายละเอียดจุดติดตั้งและการเชื่อมต่อเฟส ({tr_full_id})")
-    
-    # แสดงตารางแยกตามประเภทพร้อมระบุเฟส
-    c_solar, c_ev = st.columns(2)
-    
-    with c_solar:
-        st.markdown("**☀️ กลุ่มติดตั้ง Solar PV**")
-        st.dataframe(
-            solar_only[['id', 'capacity_kw', 'phase_connection']],
-            column_config={
-                "id": "รหัสจุดติดตั้ง",
-                "capacity_kw": "ขนาด (kW)",
-                "phase_connection": "เฟสที่เชื่อมต่อ"
-            },
-            hide_index=True, use_container_width=True
-        )
-
-    with c_ev:
-        st.markdown("**🚗 กลุ่มติดตั้ง EV Charger**")
-        st.dataframe(
-            ev_only[['id', 'capacity_kw', 'phase_connection']],
-            column_config={
-                "id": "รหัสจุดติดตั้ง",
-                "capacity_kw": "ขนาด (kW)",
-                "phase_connection": "เฟสที่เชื่อมต่อ"
-            },
-            hide_index=True, use_container_width=True
-        )
+    st.divider()
+    st.markdown("#### 📋 รายละเอียดการเชื่อมต่อโครงข่าย")
+    st.dataframe(grid_df[['id', 'type', 'capacity_kw', 'phase_connection']], use_container_width=True, hide_index=True)
 
 st.divider()
-st.caption(f"Solar Assistant v7.2 | {tr_full_id} Phase Analysis")
+st.markdown(f"<div style='text-align: center; color: rgba(255,255,255,0.3); font-size: 0.8rem;'>Solar Assistant v7.5 Premium Edition | {tr_full_id}</div>", unsafe_allow_html=True)
