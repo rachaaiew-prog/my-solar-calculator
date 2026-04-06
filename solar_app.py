@@ -32,20 +32,31 @@ st.markdown("""
         box-shadow: 0 15px 35px rgba(74, 20, 140, 0.25);
     }
     
+    .package-card {
+        background-color: white; padding: 2rem; border-radius: 24px;
+        border-left: 12px solid #6a11cb; margin-bottom: 2rem;
+        box-shadow: 0 12px 30px rgba(106, 17, 203, 0.1);
+    }
+    
     .registration-form {
         background-color: #ffffff; padding: 25px; border-radius: 20px;
         border: 2px solid #e1bee7; margin-top: 20px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    
+    .product-btn {
+        display: block; width: 100%; text-align: center;
+        background: linear-gradient(90deg, #9c27b0, #7b1fa2);
+        color: white !important; padding: 18px; border-radius: 15px;
+        text-decoration: none; font-weight: bold; font-size: 1.1rem;
+        margin-top: 15px; box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
     }
     
     .confirm-btn {
         display: block; width: 100%; text-align: center;
         background: #2e7d32; color: white !important;
-        padding: 18px; border-radius: 12px; text-decoration: none;
-        font-weight: bold; margin-top: 15px; font-size: 1.2rem;
-        transition: 0.3s;
+        padding: 15px; border-radius: 12px; text-decoration: none;
+        font-weight: bold; margin-top: 10px;
     }
-    .confirm-btn:hover { background: #1b5e20; transform: scale(1.02); }
     </style>
     """, unsafe_allow_html=True)
 
@@ -56,115 +67,86 @@ st.markdown(f"""
             <img src="https://lh3.googleusercontent.com/d/1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n" style="width:150px;">
             <div>
                 <h1 style="color:white; margin:0;">Solar Assistant</h1>
-                <p>ระบบวิเคราะห์การลงทุนโซลาร์เซลล์อัจฉริยะ (PEA Solar Standard)</p>
+                <p>วิเคราะห์ความคุ้มค่าและบันทึกข้อมูลเข้า Google Sheet</p>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# --- Sidebar ---
+# --- Input Section ---
 with st.sidebar:
-    st.header("⚙️ ตั้งระบบ")
-    unit_price = st.number_input("ค่าไฟเฉลี่ย (บาท/หน่วย)", value=4.70)
-    phase = st.radio("ระบบไฟฟ้าที่บ้าน", ["1 Phase (220V)", "3 Phase (380V)"])
-    st.divider()
-    sun_hours = st.slider("ชั่วโมงแดดเฉลี่ย/วัน", 3.0, 6.0, 4.20)
-    system_loss = st.slider("System Loss (%)", 5, 30, 15) / 100
+    st.header("⚙️ ตั้งค่า")
+    unit_price = st.number_input("ค่าไฟ (บาท/หน่วย)", value=4.7)
+    phase = st.radio("ระบบไฟ", ["1 Phase", "3 Phase"])
 
-# --- 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน ---
-st.markdown("### 📝 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน")
-device_list = [
-    {"item": "แอร์ 9,000 BTU", "watts": 800},
-    {"item": "แอร์ 12,000 BTU", "watts": 1100},
-    {"item": "แอร์ 18,000 BTU", "watts": 1600},
-    {"item": "Wall Charger 7 kW", "watts": 7000},
-    {"item": "ตู้เย็น/อื่นๆ", "watts": 300},
-]
+st.subheader("📝 ระบุหน่วยไฟที่ใช้ช่วงกลางวัน")
+units = st.number_input("จำนวนหน่วยต่อวัน (09:00 - 16:00)", min_value=0.0, value=10.0)
 
-total_daily_wh = 0
-col_h1, col_h2, col_h3 = st.columns([2, 1, 1])
-with col_h1: st.markdown("**รายการ**")
-with col_h2: st.markdown("**จำนวน**")
-with col_h3: st.markdown("**ชม.**")
-
-for i, dev in enumerate(device_list):
-    c1, c2, c3 = st.columns([2, 1, 1])
-    with c1: chosen = st.checkbox(dev['item'], key=f"u_{i}")
-    with c2: qty = st.number_input("จำนวน", min_value=0, value=0, key=f"q_{i}", label_visibility="collapsed")
-    with c3: hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"h_{i}", label_visibility="collapsed")
-    if chosen and qty > 0: total_daily_wh += (dev['watts'] * qty * hrs)
-
-units_per_day = total_daily_wh / 1000
-
-if units_per_day > 0:
-    st.divider()
+if units > 0:
     # คำนวณแพ็กเกจ
-    eff_factor = 1 - system_loss
-    target_kw = units_per_day / (sun_hours * eff_factor)
-    is_1p = "1 Phase" in phase
+    target_kw = units / (4.2 * 0.85)
+    is_1p = phase == "1 Phase"
     available = [p for p in pea_packages if ((is_1p and "1 Phase" in p['name']) or (not is_1p and "3 Phase" in p['name']))]
     pkg = next((p for p in available if p['inverter_size'] >= target_kw), available[-1])
     
     # คำนวณคืนทุน
-    saving_year = pkg['pv_size'] * sun_hours * eff_factor * unit_price * 365
+    saving_year = pkg['pv_size'] * 4.2 * 0.85 * unit_price * 365
     payback = pkg['price'] / saving_year
 
-    # แสดงผล Metric
-    m1, m2, m3 = st.columns(3)
-    m1.metric("ขนาดแนะนำ", f"{pkg['inverter_size']} kW")
-    m2.metric("งบประมาณ", f"{pkg['price']:,} บาท")
-    m3.metric("ระยะคืนทุน", f"{payback:.1f} ปี")
+    # แสดงผลเบื้องต้น
+    c1, c2, c3 = st.columns(3)
+    c1.metric("ขนาดแนะนำ", f"{pkg['inverter_size']} kW")
+    c2.metric("ราคา", f"{pkg['price']:,} บาท")
+    c3.metric("คืนทุน", f"{payback:.1f} ปี")
 
-    # --- ส่วนการบันทึกข้อมูล ---
+    # กราฟจุดคุ้มทุน
+    st.markdown("#### กราฟวิเคราะห์จุดคุ้มทุน")
+    df_chart = pd.DataFrame({
+        "ปีที่": range(21),
+        "เงินลงทุน": [pkg['price']] * 21,
+        "ประหยัดสะสม": [saving_year * i for i in range(21)]
+    }).set_index("ปีที่")
+    st.line_chart(df_chart)
+
+    # ลิงก์ผลิตภัณฑ์
+    st.markdown(f'<a href="https://peasolar.pea.co.th/our-products/" target="_blank" class="product-btn">🔍 ดูรายละเอียดผลิตภัณฑ์เพิ่มเติม</a>', unsafe_allow_html=True)
+
+    # --- ส่วนบันทึกข้อมูล ---
     st.markdown('<div class="registration-form">', unsafe_allow_html=True)
     st.subheader("📥 บันทึกข้อมูลและขอใบเสนอราคา")
     
-    with st.form("solar_form_final"):
-        f_name = st.text_input("ชื่อ *")
-        l_name = st.text_input("นามสกุล *")
+    with st.form("solar_form_recovery"):
+        name = st.text_input("ชื่อ-นามสกุล *")
         phone = st.text_input("เบอร์โทรศัพท์ *")
-        lat_long = st.text_input("พิกัด (lat, long)")
+        addr = st.text_input("สถานที่ติดตั้ง/พิกัด")
         
-        submitted = st.form_submit_button("🚀 สร้างลิงก์บันทึกข้อมูล")
+        btn = st.form_submit_button("🚀 สร้างลิงก์ส่งข้อมูล")
         
-        if submitted:
-            if f_name and phone:
-                # ข้อมูลจาก Google Form ของคุณ
+        if btn:
+            if name and phone:
                 FORM_ID = "1FAIpQLSclm-IwbIb85XoWuO_P8C-o8qHZqyYP4t7GdVz7cc6LpcWgog"
                 
-                # อัปเดต entry ID ตามที่เห็นจาก Inspect (ตัวอย่างค่าที่น่าจะเป็นไปได้)
+                # ใช้ Entry ID ที่คุณเคยส่งมาเบื้องต้น
                 entries = {
-                    "pkg_recommend": "entry.1983309523", # ขนาดที่แนะนำติดตั้ง (จากรูปที่คุณส่งมา)
-                    "location": "entry.1907655311",      # พิกัด(lat,long)
-                    "first_name": "entry.1381098045",    # ชื่อ
-                    "last_name": "entry.17058331",     # สกุล
-                    "phone_no": "entry.225801865"       # เบอร์โทร
+                    "entry_name": "entry.1381098045", 
+                    "entry_phone": "entry.225801865",
+                    "entry_addr": "entry.1907655311"
                 }
                 
-                pkg_info = f"{pkg['name']} ({pkg['inverter_size']}kW)"
                 params = {
-                    entries["pkg_recommend"]: pkg_info,
-                    entries["location"]: lat_long,
-                    entries["first_name"]: f_name,
-                    entries["last_name"]: l_name,
-                    entries["phone_no"]: phone
+                    entries["entry_name"]: name,
+                    entries["entry_phone"]: phone,
+                    entries["entry_addr"]: addr
                 }
                 
-                form_url = f"https://docs.google.com/forms/d/e/{FORM_ID}/viewform?" + urllib.parse.urlencode(params)
+                base_url = f"https://docs.google.com/forms/d/e/{FORM_ID}/viewform?"
+                final_url = base_url + urllib.parse.urlencode(params)
                 
-                st.success("เตรียมข้อมูลพร้อมส่งแล้ว!")
-                st.markdown(f"""
-                    <div style="background:#f1f8e9; padding:20px; border-radius:15px; border:1px solid #c8e6c9; text-align:center;">
-                        <p style="font-size:1.1rem; color:#2e7d32;"><b>สร้างลิงก์สำเร็จ!</b></p>
-                        <p>กรุณากดปุ่มสีเขียวด้านล่างเพื่อเปิดหน้ายืนยันข้อมูลครับ</p>
-                        <a href="{form_url}" target="_blank" class="confirm-btn">✅ กดยืนยันการส่งข้อมูล</a>
-                    </div>
-                """, unsafe_allow_html=True)
+                st.success("เตรียมข้อมูลเรียบร้อยแล้ว!")
+                st.markdown(f'<a href="{final_url}" target="_blank" class="confirm-btn">✅ กดยืนยันการส่งข้อมูล</a>', unsafe_allow_html=True)
             else:
-                st.error("กรุณากรอกชื่อและเบอร์โทรศัพท์ให้ครบถ้วน")
+                st.error("กรุณากรอกข้อมูลให้ครบถ้วน")
     st.markdown('</div>', unsafe_allow_html=True)
-else:
-    st.info("👆 กรุณาเลือกเครื่องใช้ไฟฟ้าเพื่อเริ่มการวิเคราะห์")
 
 st.divider()
-st.caption("Solar Assistant v5.5 | Google Form Integrated with Detected IDs")
+st.caption("Solar Assistant v5.6 | เวอร์ชันย้อนกลับ (Stable Version)")
