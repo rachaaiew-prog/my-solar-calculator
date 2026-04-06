@@ -65,7 +65,7 @@ st.markdown("""
     /* Header Style: Gradient ม่วงเข้มไปม่วงสว่าง */
     .app-header {
         background: linear-gradient(135deg, #4a148c 0%, #7b1fa2 50%, #9c27b0 100%);
-        padding: 2.5rem;
+        padding: 2rem;
         color: white;
         border-radius: 28px;
         margin-bottom: 2.5rem;
@@ -74,9 +74,12 @@ st.markdown("""
     }
     
     .pea-logo {
-        width: 90px;
+        width: 120px;
+        background-color: white;
+        padding: 10px;
+        border-radius: 15px;
         margin-bottom: 1rem;
-        filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.3));
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
     }
     
     /* Card Style: เน้นขอบม่วง */
@@ -99,10 +102,12 @@ st.markdown("""
     
     /* สไตล์สำหรับแถวที่เลือก (Selected Device Row) */
     .selected-row {
-        background-color: #e1dbff !important;
-        border-radius: 10px;
-        border: 1px solid #7b1fa2;
-        transition: all 0.3s ease;
+        background-color: #d1c4e9 !important; /* ม่วงที่เข้มข้นขึ้น */
+        border-radius: 12px;
+        padding: 5px;
+        margin-bottom: 5px;
+        border: 2px solid #7b1fa2;
+        transition: all 0.2s ease;
     }
 
     /* Tab Style */
@@ -141,11 +146,12 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- ส่วนหัวของโปรแกรม ---
-pea_logo_url = "https://www.pea.co.th/Portals/0/Images/logo.png"
+# เปลี่ยนมาใช้ URL ที่เสถียรขึ้น หรือแสดงเป็นข้อความสำรองหากรูปโหลดไม่ได้
+pea_logo_url = "https://drive.google.com/file/d/1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n/view?usp=sharing" # ใช้เป็นไอคอนขนาดเล็กแทน หรือหา Direct Link ที่ชัวร์กว่า
 
 st.markdown(f"""
     <div class="app-header">
-        <img src="{pea_logo_url}" class="pea-logo" alt="PEA Logo">
+        <div style="font-size: 3rem; margin-bottom: 10px;">⚡</div>
         <h1 style='font-weight: 500; margin-top: 0; letter-spacing: 1px;'>Solar Assistant</h1>
         <p style='font-size: 1.15rem; opacity: 0.95;'>ระบบวิเคราะห์การลงทุนโซลาร์เซลล์อัจฉริยะ (PEA Solar Standard)</p>
     </div>
@@ -186,38 +192,34 @@ device_list = [
 ]
 
 total_daily_wh = 0
+
+# หัวตาราง
 col_h1, col_h2, col_h3 = st.columns([2, 1, 1])
 with col_h1: st.markdown("**รายการ**")
 with col_h2: st.markdown("**จำนวน**")
 with col_h3: st.markdown("**ชั่วโมง/วัน**")
 
 for i, dev in enumerate(device_list):
-    # ตรวจสอบสถานะ checkbox ก่อน เพื่อใช้กำหนดสีพื้นหลัง
-    # ใน Streamlit เราจะใช้วิธีการใช้ Container เพื่อคลุมแถว
-    row_container = st.container()
+    # ใช้ session_state เพื่อเช็คว่าติ๊กเลือกหรือยัง
+    is_checked = st.session_state.get(f"use_{i}", False)
     
-    # ดึงค่าสถานะจาก session state ถ้ามี
-    is_selected = st.session_state.get(f"use_{i}", False)
-    
-    # หากเลือกอยู่ ให้ใส่ CSS Class สำหรับสีเข้ม (ผ่าน markdown ใน container)
-    if is_selected:
+    # ถ้าติ๊กเลือก ให้คลุมด้วย div selected-row
+    if is_checked:
         st.markdown(f'<div class="selected-row">', unsafe_allow_html=True)
-
-    with row_container:
-        c1, c2, c3 = st.columns([2, 1, 1])
-        with c1:
-            st.checkbox(f"{dev['icon']} {dev['item']}", key=f"use_{i}")
-        with c2:
-            qty = st.number_input("จำนวน", min_value=0, value=0, key=f"qty_{i}", label_visibility="collapsed")
-        with c3:
-            hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"hrs_{i}", label_visibility="collapsed")
+    
+    c1, c2, c3 = st.columns([2, 1, 1])
+    with c1:
+        # กำหนด key เพื่อให้ Streamlit จำสถานะได้
+        chosen = st.checkbox(f"{dev['icon']} {dev['item']}", key=f"use_{i}")
+    with c2:
+        qty = st.number_input("จำนวน", min_value=0, value=0, key=f"qty_{i}", label_visibility="collapsed")
+    with c3:
+        hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"hrs_{i}", label_visibility="collapsed")
+    
+    if chosen and qty > 0:
+        total_daily_wh += (dev['watts'] * qty * hrs)
         
-        # คืนค่าสถานะที่อัปเดตแล้ว
-        is_used = st.session_state.get(f"use_{i}", False)
-        if is_used and qty > 0:
-            total_daily_wh += (dev['watts'] * qty * hrs)
-            
-    if is_selected:
+    if is_checked:
         st.markdown('</div>', unsafe_allow_html=True)
 
 units_per_day = total_daily_wh / 1000
@@ -304,7 +306,7 @@ if units_per_day > 0:
         st.dataframe(df_pkg.style.format({"Price (THB)": "{:,.0f}"}), use_container_width=True)
 
 else:
-    st.warning("👈 เลือกเครื่องใช้ไฟฟ้าใน Sidebar เพื่อประมวลผลระบบที่เหมาะสม")
+    st.warning("👈 เลือกเครื่องใช้ไฟฟ้าด้านบนเพื่อประมวลผลระบบที่เหมาะสม")
 
 st.divider()
 st.markdown("<p style='text-align:center; color:#999; font-size:0.9rem;'>Solar Assistant v2.2 | Powered by PEA Solar Data</p>", unsafe_allow_html=True)
