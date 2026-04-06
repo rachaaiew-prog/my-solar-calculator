@@ -61,37 +61,67 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
     html, body, [class*="css"] { font-family: 'Kanit', sans-serif; }
-    .stApp { background-color: #f8f9fa; }
+    
+    /* ปรับพื้นหลังหลักเป็นโทนสีน้ำเงิน */
+    .stApp { 
+        background-color: #0f172a; 
+        color: #f8fafc;
+    }
+    
+    /* ปรับสีตัวอักษรใน Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #1e293b;
+    }
+    [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] label {
+        color: #f8fafc;
+    }
+
     .app-header {
-        background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3f51b5 100%);
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
         padding: 2.5rem; color: white; border-radius: 20px; margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(26, 35, 126, 0.2);
+        box-shadow: 0 10px 30px rgba(30, 58, 138, 0.4);
     }
+    
     .analysis-card {
-        background: white; border-radius: 15px; padding: 20px;
-        border-left: 5px solid #1a237e; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        background: #1e293b; border-radius: 15px; padding: 20px;
+        border-left: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         margin-bottom: 20px;
+        color: #f8fafc;
     }
+    
     .registration-form {
-        background-color: #ffffff; padding: 30px; border-radius: 20px;
-        border: 1px solid #e0e0e0; margin-top: 25px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        background-color: #1e293b; padding: 30px; border-radius: 20px;
+        border: 1px solid #334155; margin-top: 25px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        color: #f8fafc;
     }
-    .legend-box {
-        padding: 10px; border-radius: 10px; background: white; 
-        border: 1px solid #ddd; display: inline-block; margin-right: 10px;
+
+    /* ปรับสี Tab */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
     }
+    .stTabs [data-baseweb="tab"] {
+        background-color: #1e293b;
+        border-radius: 10px 10px 0px 0px;
+        color: #94a3b8;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #3b82f6 !important;
+        color: white !important;
+    }
+
     /* ปุ่มวิเคราะห์สินค้า */
     .product-btn {
         display: block; width: 100%; text-align: center;
-        background: linear-gradient(90deg, #ff9800, #f57c00);
+        background: linear-gradient(90deg, #f59e0b, #d97706);
         color: white !important; padding: 20px; border-radius: 15px;
         text-decoration: none; font-weight: bold; font-size: 1.2rem;
-        margin-top: 20px; box-shadow: 0 5px 15px rgba(245, 124, 0, 0.3);
+        margin-top: 20px; box-shadow: 0 5px 15px rgba(217, 119, 6, 0.4);
     }
+    
     /* แก้ไขสีปุ่มส่งข้อมูลใน Streamlit */
     div.stButton > button:first-child {
-        background-color: #2e7d32;
+        background-color: #10b981;
         color: white;
         border-radius: 12px;
         border: none;
@@ -100,10 +130,18 @@ st.markdown("""
         transition: all 0.3s ease;
     }
     div.stButton > button:first-child:hover {
-        background-color: #1b5e20;
-        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
+        background-color: #059669;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
         border: none;
         color: white;
+    }
+    
+    /* ปรับสีฟอนต์ Metric */
+    [data-testid="stMetricValue"] {
+        color: #3b82f6;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #94a3b8;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -217,14 +255,14 @@ with tab2:
         st.markdown(f"#### ⚡ {tr_full_id} Analytics")
         st.markdown(f"""
         <div class="analysis-card">
-            <small>ช่วงกลางวัน (ลดโหลดหม้อแปลง)</small><br>
+            <small style="color:#94a3b8;">ช่วงกลางวัน (ลดโหลดหม้อแปลง)</small><br>
             <b>Net Load Δ: -{avg_day_load_reduction:.1f} kW</b><br>
-            <p style="font-size:0.8rem; color:gray;">Solar รวม: {total_solar_kw} kW (2 ราย)</p>
+            <p style="font-size:0.8rem; color:#64748b;">Solar รวม: {total_solar_kw} kW (2 ราย)</p>
         </div>
-        <div class="analysis-card" style="border-left-color: #2e7d32;">
-            <small>ช่วง 22:00 น. (เพิ่มโหลดหม้อแปลง)</small><br>
+        <div class="analysis-card" style="border-left-color: #10b981;">
+            <small style="color:#94a3b8;">ช่วง 22:00 น. (เพิ่มโหลดหม้อแปลง)</small><br>
             <b>Net Load Δ: +{night_load_increase:.1f} kW</b><br>
-            <p style="font-size:0.8rem; color:gray;">EV รวม: {total_ev_kw} kW (5 ราย)</p>
+            <p style="font-size:0.8rem; color:#64748b;">EV รวม: {total_ev_kw} kW (5 ราย)</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -240,12 +278,12 @@ with tab2:
         )
         tr_marker = pdk.Layer(
             "ScatterplotLayer", pd.DataFrame({'lat': [16.7115], 'lon': [103.7477]}),
-            get_position="[lon, lat]", get_fill_color=[26, 35, 126, 100],
+            get_position="[lon, lat]", get_fill_color=[59, 130, 246, 80],
             get_radius=300, pickable=False
         )
 
         st.pydeck_chart(pdk.Deck(
-            map_style="mapbox://styles/mapbox/light-v9",
+            map_style="mapbox://styles/mapbox/dark-v10",
             initial_view_state=view_state,
             layers=[tr_marker, scatterplot],
             tooltip={"text": "{id}\nCapacity: {capacity_kw} kW\nPhase: {phase_connection}"}
@@ -282,4 +320,4 @@ with tab2:
         )
 
 st.divider()
-st.caption(f"Solar Assistant v7.1 | {tr_full_id} Phase Analysis")
+st.caption(f"Solar Assistant v7.2 | {tr_full_id} Phase Analysis")
