@@ -31,6 +31,7 @@ def get_simulated_grid_data():
         'lat': [base_lat + 0.0012, base_lat - 0.0008],
         'lon': [base_lon + 0.0009, base_lon - 0.0011],
         'capacity_kw': [5, 10],
+        'phase_connection': ['Phase A', '3 Phase'], # เพิ่มข้อมูลเฟส
         'weight': [0.9, 1.0],
         'type': 'Solar PV Installed',
         'color_rgb': [[255, 69, 0, 230]] * 2, 
@@ -43,6 +44,7 @@ def get_simulated_grid_data():
         'lat': [base_lat + 0.002, base_lat + 0.0015, base_lat - 0.001, base_lat - 0.002, base_lat + 0.0005],
         'lon': [base_lon + 0.001, base_lon - 0.0015, base_lon + 0.002, base_lon + 0.0005, base_lon - 0.0025],
         'capacity_kw': [7, 7, 11, 7, 22],
+        'phase_connection': ['Phase B', 'Phase C', 'Phase A', 'Phase B', '3 Phase'], # เพิ่มข้อมูลเฟส
         'weight': [0.7, 0.7, 0.8, 0.7, 1.0],
         'type': 'EV Wall Charger Request',
         'color_rgb': [[57, 255, 20, 230]] * 5,
@@ -84,12 +86,6 @@ st.markdown("""
         color: white !important; padding: 20px; border-radius: 15px;
         text-decoration: none; font-weight: bold; font-size: 1.2rem;
         margin-top: 20px; box-shadow: 0 5px 15px rgba(245, 124, 0, 0.3);
-    }
-    .confirm-btn {
-        display: block; width: 100%; text-align: center;
-        background: #2e7d32; color: white !important;
-        padding: 15px; border-radius: 12px; text-decoration: none;
-        font-weight: bold; margin-top: 15px; font-size: 1.1rem;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -193,8 +189,8 @@ with tab2:
     # คำนวณค่าทางสถิติสำหรับ Balance
     total_solar_kw = solar_only['capacity_kw'].sum()
     total_ev_kw = ev_only['capacity_kw'].sum()
-    avg_day_load_reduction = total_solar_kw * 0.7 # คาดการณ์การผลิตไฟ 70%
-    night_load_increase = total_ev_kw * 0.85 # คาดการณ์การชาร์จพร้อมกัน 85%
+    avg_day_load_reduction = total_solar_kw * 0.7 
+    night_load_increase = total_ev_kw * 0.85 
 
     col_map, col_stat = st.columns([2.5, 1])
 
@@ -215,19 +211,14 @@ with tab2:
         
         balance_gap = night_load_increase - avg_day_load_reduction
         st.error(f"**Transformer Stress:** {balance_gap:.1f} kW")
-        st.caption("ค่าความต่างระหว่างโหลดที่หายไปตอนกลางวันกับโหลดที่กระชากตอนดึก")
 
     with col_map:
         view_state = pdk.ViewState(latitude=16.7115, longitude=103.7477, zoom=15, pitch=40)
-
-        # Layers
         scatterplot = pdk.Layer(
             "ScatterplotLayer", grid_df, get_position="[lon, lat]",
             get_fill_color="color_rgb", get_line_color="line_color",
             get_radius=30, line_width_min_pixels=3, pickable=True
         )
-
-        # วงรัศมีหม้อแปลง
         tr_marker = pdk.Layer(
             "ScatterplotLayer", pd.DataFrame({'lat': [16.7115], 'lon': [103.7477]}),
             get_position="[lon, lat]", get_fill_color=[26, 35, 126, 100],
@@ -238,28 +229,38 @@ with tab2:
             map_style="mapbox://styles/mapbox/light-v9",
             initial_view_state=view_state,
             layers=[tr_marker, scatterplot],
-            tooltip={"text": "{id}\nCapacity: {capacity_kw} kW\nคลิกเพื่อดู Google Maps"}
+            tooltip={"text": "{id}\nCapacity: {capacity_kw} kW\nPhase: {phase_connection}"}
         ))
 
-    st.markdown("""
-    <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <div class="legend-box"><span style="color: #FF4500;">●</span> Solar PV (2 ราย)</div>
-        <div class="legend-box"><span style="color: #39FF14;">●</span> EV Charger (5 ราย)</div>
-        <div class="legend-box"><span style="color: #1a237e33;">⬤</span> รัศมีบริการหม้อแปลง TR-01</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
     st.write("---")
-    st.subheader("📍 รายละเอียดจุดติดตั้งใต้หม้อแปลง TR-01")
+    st.subheader("📍 รายละเอียดจุดติดตั้งและการเชื่อมต่อเฟส (TR-01)")
     
-    display_df = grid_df[['id', 'type', 'capacity_kw', 'gmaps_link']].copy()
-    st.dataframe(
-        display_df,
-        column_config={
-            "gmaps_link": st.column_config.LinkColumn("Google Maps", display_text="Open Map 🗺️")
-        },
-        use_container_width=True
-    )
+    # แสดงตารางแยกตามประเภทพร้อมระบุเฟส
+    c_solar, c_ev = st.columns(2)
+    
+    with c_solar:
+        st.markdown("**☀️ กลุ่มติดตั้ง Solar PV**")
+        st.dataframe(
+            solar_only[['id', 'capacity_kw', 'phase_connection']],
+            column_config={
+                "id": "รหัสจุดติดตั้ง",
+                "capacity_kw": "ขนาด (kW)",
+                "phase_connection": "เฟสที่เชื่อมต่อ"
+            },
+            hide_index=True, use_container_width=True
+        )
+
+    with c_ev:
+        st.markdown("**🚗 กลุ่มติดตั้ง EV Charger**")
+        st.dataframe(
+            ev_only[['id', 'capacity_kw', 'phase_connection']],
+            column_config={
+                "id": "รหัสจุดติดตั้ง",
+                "capacity_kw": "ขนาด (kW)",
+                "phase_connection": "เฟสที่เชื่อมต่อ"
+            },
+            hide_index=True, use_container_width=True
+        )
 
 st.divider()
-st.caption("Solar Assistant v6.9 | Single Transformer Load Analysis")
+st.caption("Solar Assistant v7.0 | Phase Balance & Transformer Analysis")
