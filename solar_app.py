@@ -9,13 +9,14 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- ข้อมูลแพ็กเกจมาตรฐาน PEA Solar (ราคาประมาณการรวมติดตั้งและขออนุญาต) ---
+# --- ข้อมูลแพ็กเกจมาตรฐาน PEA Solar (อ้างอิงจากขนาด Inverter) ---
+# ราคาประมาณการรวมติดตั้งและขออนุญาต
 pea_packages = [
-    {"name": "Micro Solar (1 Phase)", "size": 3.3, "price": 145000, "desc": "เหมาะสำหรับบ้านขนาดเล็ก แอร์ 1-2 เครื่อง"},
-    {"name": "Home Solar (1 Phase)", "size": 5.5, "price": 225000, "desc": "เหมาะสำหรับบ้านขนาดกลาง แอร์ 2-3 เครื่อง"},
-    {"name": "Premium Solar (3 Phase)", "size": 5.5, "price": 235000, "desc": "สำหรับบ้านไฟ 3 เฟส แอร์ 2-3 เครื่อง"},
-    {"name": "Business Solar (3 Phase)", "size": 10.0, "price": 390000, "desc": "ออฟฟิศขนาดกลาง แอร์ 4-6 เครื่อง"},
-    {"name": "Max Solar (3 Phase)", "size": 20.0, "price": 750000, "desc": "อาคารพาณิชย์ หรือโรงงานขนาดเล็ก"}
+    {"name": "Micro Solar (1 Phase)", "inverter_size": 3.0, "pv_size": 3.78, "price": 145000, "desc": "Inverter 3kW: เหมาะสำหรับบ้านขนาดเล็ก แอร์ 1-2 เครื่อง"},
+    {"name": "Home Solar (1 Phase)", "inverter_size": 5.0, "pv_size": 5.67, "price": 225000, "desc": "Inverter 5kW: เหมาะสำหรับบ้านขนาดกลาง แอร์ 2-3 เครื่อง"},
+    {"name": "Premium Solar (3 Phase)", "inverter_size": 5.0, "pv_size": 5.67, "price": 235000, "desc": "Inverter 5kW (3 Phase): สำหรับบ้านขนาดกลาง แอร์ 2-3 เครื่อง"},
+    {"name": "Business Solar (3 Phase)", "inverter_size": 10.0, "pv_size": 11.34, "price": 390000, "desc": "Inverter 10kW: ออฟฟิศขนาดกลาง แอร์ 4-6 เครื่อง"},
+    {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000, "desc": "Inverter 20kW: อาคารพาณิชย์ หรือโรงงานขนาดเล็ก"}
 ]
 
 # --- CSS ตกแต่งหน้าจอ ---
@@ -52,7 +53,7 @@ st.markdown("""
 st.markdown("""
     <div class="app-header">
         <h1>☀️ Solar PV Investment Analyzer</h1>
-        <p>วิเคราะห์โหลดไฟฟ้าด้วยเครื่องใช้ไฟฟ้า และแนะนำแพ็กเกจมาตรฐาน PEA Solar</p>
+        <p>วิเคราะห์โหลดไฟฟ้าและแนะนำแพ็กเกจตามขนาด Inverter (อ้างอิงราคา PEA Solar)</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -63,6 +64,11 @@ with st.sidebar:
     phase_type = st.radio("ระบบไฟฟ้าที่บ้าน", ["1 Phase (220V)", "3 Phase (380V)"])
     
     st.divider()
+    st.header("📦 ข้อมูลแผงโซลาร์")
+    panel_watt = 630  # กำหนดขนาดแผงเป็น 630W ตามโจทย์
+    st.info(f"ขนาดแผงที่ใช้คำนวณ: {panel_watt}W")
+    
+    st.divider()
     st.header("🌍 ปัจจัยการผลิต")
     sun_hours = st.slider("ชั่วโมงแดดผลิตไฟเฉลี่ย/วัน", 3.0, 6.0, 4.2)
     system_loss = st.slider("ความสูญเสียในระบบ (Loss) (%)", 5, 30, 15) / 100
@@ -70,12 +76,13 @@ with st.sidebar:
 
 # --- ขั้นตอนที่ 1: เครื่องคำนวณโหลดไฟฟ้า ---
 st.header("📝 1. ประมาณการโหลดไฟฟ้าจากอุปกรณ์")
-st.info("ระบุเครื่องใช้ไฟฟ้าที่เปิดใช้งานในช่วงกลางวัน (09:00 - 16:00) เพื่อหาขนาดที่ประหยัดที่สุด")
+st.info("ระบุเครื่องใช้ไฟฟ้าที่เปิดใช้งานในช่วงกลางวัน (09:00 - 16:00)")
 
 device_list = [
     {"item": "แอร์ 9,000 BTU (Inverter)", "watts": 800, "icon": "❄️"},
     {"item": "แอร์ 12,000 BTU (Inverter)", "watts": 1100, "icon": "❄️"},
     {"item": "แอร์ 18,000 BTU (Inverter)", "watts": 1600, "icon": "❄️"},
+    {"item": "แอร์ 24,000 BTU (Inverter)", "watts": 2100, "icon": "❄️"}, # เพิ่มตามโจทย์
     {"item": "ตู้เย็น (ขนาดกลาง)", "watts": 150, "icon": "🧊"},
     {"item": "ทีวี และเครื่องเสียง", "watts": 120, "icon": "📺"},
     {"item": "พัดลม", "watts": 60, "icon": "🌬️"},
@@ -109,14 +116,15 @@ if units_per_day > 0:
     st.divider()
     st.header("📊 2. ผลการวิเคราะห์และแพ็กเกจที่แนะนำ")
     
-    # คำนวณขนาดที่ควรติดตั้ง (kWp)
+    # คำนวณขนาด Inverter ที่ต้องใช้ (kW) โดยอิงจาก Peak Load หรือการผลิตที่ต้องการ
     eff_factor = 1 - system_loss
-    req_kwp = units_per_day / (sun_hours * eff_factor)
+    # ประมาณการขนาด Inverter จากหน่วยที่ใช้ต่อวัน / ชม.แดด
+    target_inverter_kw = units_per_day / (sun_hours * eff_factor)
     
-    # ค้นหาแพ็กเกจที่เหมาะสม (ขนาดต้องครอบคลุมโหลดและตรงกับเฟสไฟ)
+    # ค้นหาแพ็กเกจที่เหมาะสม (อ้างอิงจากขนาด Inverter >= target_inverter_kw)
     suggested_pkg = None
     for pkg in pea_packages:
-        if pkg['size'] >= req_kwp:
+        if pkg['inverter_size'] >= target_inverter_kw:
             if "3 Phase" in pkg['name'] and phase_type == "1 Phase (220V)":
                 continue
             suggested_pkg = pkg
@@ -124,24 +132,30 @@ if units_per_day > 0:
     
     if not suggested_pkg: suggested_pkg = pea_packages[-1]
 
+    # คำนวณจำนวนแผง (ใช้แผง 630W)
+    # ปกติ PV Size จะใหญ่กว่า Inverter Size เล็กน้อย (DC/AC Ratio) 
+    # ในที่นี้ใช้ PV Size จากแพ็กเกจมาหาจำนวนแผง
+    num_panels = math.ceil((suggested_pkg['pv_size'] * 1000) / panel_watt)
+    actual_pv_kwp = (num_panels * panel_watt) / 1000
+
     # แสดงผลผ่าน Metrics
     m1, m2, m3 = st.columns(3)
-    m1.metric("ขนาดระบบที่คำนวณได้", f"{req_kwp:.2f} kWp")
-    m2.metric("แพ็กเกจที่แนะนำ (PEA)", f"{suggested_pkg['size']} kWp")
+    m1.metric("ขนาด Inverter ที่แนะนำ", f"{suggested_pkg['inverter_size']} kW")
+    m2.metric("จำนวนแผง (630W)", f"{num_panels} แผง")
     m3.metric("งบลงทุนประมาณการ", f"{suggested_pkg['price']:,} ฿")
 
     # แสดงรายละเอียดแพ็กเกจ
     st.markdown(f"""
     <div class="package-card">
         <h2 style='color:#004d40; margin-top:0;'>📦 แนะนำแพ็กเกจ: {suggested_pkg['name']}</h2>
-        <p style='font-size:1.2rem;'><b>กำลังการผลิต:</b> {suggested_pkg['size']} kWp | <b>งบประมาณ:</b> {suggested_pkg['price']:,} บาท</p>
+        <p style='font-size:1.2rem;'><b>Inverter:</b> {suggested_pkg['inverter_size']} kW | <b>แผง PV รวม:</b> {actual_pv_kwp:.2f} kWp | <b>งบประมาณ:</b> {suggested_pkg['price']:,} บาท</p>
         <p style='color:#555;'><i>{suggested_pkg['desc']}</i></p>
-        <p style='font-size:0.85rem; color:#888;'>* ราคารวมค่าสำรวจ ติดตั้ง และขออนุญาตเชื่อมต่อโครงข่าย (อ้างอิงมาตรฐาน PEA Solar)</p>
+        <p style='font-size:0.85rem; color:#888;'>* คำนวณด้วยแผงขนาด {panel_watt}W จำนวน {num_panels} แผง (อ้างอิงราคามาตรฐาน PEA Solar)</p>
     </div>
     """, unsafe_allow_html=True)
 
     # วิเคราะห์ทางการเงิน
-    pkg_prod_day = suggested_pkg['size'] * sun_hours * eff_factor
+    pkg_prod_day = actual_pv_kwp * sun_hours * eff_factor
     monthly_save = pkg_prod_day * 30 * unit_price
     annual_save = monthly_save * 12
     payback_years = suggested_pkg['price'] / annual_save if annual_save > 0 else 0
@@ -166,13 +180,13 @@ if units_per_day > 0:
         st.write(f"🌳 เทียบเท่ากับการปลูกต้นไม้เพิ่มขึ้น **{int(co2_saved * 100)} ต้นต่อปี**")
 
     with res_tab3:
-        st.write("### ตารางแพ็กเกจมาตรฐาน PEA Solar")
+        st.write("### ตารางแพ็กเกจมาตรฐาน PEA Solar (อิงตามขนาด Inverter)")
         df_pkg = pd.DataFrame(pea_packages)
-        df_pkg.columns = ["ชื่อแพ็กเกจ", "ขนาด (kWp)", "ราคา (บาท)", "รายละเอียด"]
+        df_pkg.columns = ["ชื่อแพ็กเกจ", "ขนาด Inverter (kW)", "ขนาดแผงอ้างอิง (kWp)", "ราคา (บาท)", "รายละเอียด"]
         st.dataframe(df_pkg.style.format({"ราคา (บาท)": "{:,.0f}"}), use_container_width=True)
 
 else:
     st.warning("👈 กรุณาเลือกเครื่องใช้ไฟฟ้าและระบุข้อมูลการใช้งานเพื่อเริ่มการประเมิน")
 
 st.divider()
-st.caption("หมายเหตุ: ข้อมูลนี้เป็นการคำนวณเบื้องต้นเพื่อประกอบการตัดสินใจ | อ้างอิงชั่วโมงแดดเฉลี่ยในประเทศไทย 4.2 ชม./วัน")
+st.caption(f"หมายเหตุ: คำนวณโดยใช้แผงโซลาร์ขนาด {panel_watt}W เป็นมาตรฐาน | อ้างอิงชั่วโมงแดดเฉลี่ยในประเทศไทย 4.2 ชม./วัน")
