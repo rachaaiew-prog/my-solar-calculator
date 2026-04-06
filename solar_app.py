@@ -189,7 +189,7 @@ with tab1:
         {"item": "ปั๊มน้ำ (Water Pump)", "watts": 350},
         {"item": "พัดลม (Fan)", "watts": 60},
         {"item": "Wall Charger 7 kW (EV)", "watts": 7000},
-        {"item": "อุปกรณ์อื่นๆ", "watts": 500},
+  
     ]
 
     total_daily_wh = 0
