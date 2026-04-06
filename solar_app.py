@@ -19,15 +19,15 @@ pea_packages = [
     {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000}
 ]
 
-# --- ข้อมูลจำลอง Heat Map (ข้อมูลผู้ยื่นขอขนานไฟ) ---
+# --- ข้อมูลจำลอง Heat Map (ข้อมูลผู้ยื่นขอขนานไฟ - อำเภอสมเด็จ จ.กาฬสินธุ์) ---
 def get_simulated_solar_data():
-    # จำลองตำแหน่งในเขตกรุงเทพฯ/ปริมณฑล หรือพื้นที่ตัวอย่าง
-    base_lat, base_lon = 13.7563, 100.5018
+    # พิกัดศูนย์กลาง อ.สมเด็จ จ.กาฬสินธุ์
+    base_lat, base_lon = 16.7115, 103.7477
     data = pd.DataFrame({
-        'lat': base_lat + np.random.randn(50) * 0.02,
-        'lon': base_lon + np.random.randn(50) * 0.02,
-        'capacity_kw': np.random.choice([3, 5, 10, 20], 50),
-        'status': np.random.choice(['Approved', 'Pending', 'Connected'], 50)
+        'lat': base_lat + np.random.randn(60) * 0.015, # ปรับรัศมีให้แคบลงในระดับอำเภอ
+        'lon': base_lon + np.random.randn(60) * 0.015,
+        'capacity_kw': np.random.choice([3, 5, 10, 20], 60),
+        'status': np.random.choice(['Approved', 'Pending', 'Connected'], 60)
     })
     return data
 
@@ -207,8 +207,8 @@ with tab1:
         st.info("👆 กรุณาเลือกรายการเครื่องใช้ไฟฟ้าและระบุเวลาที่ใช้งาน เพื่อให้ระบบเริ่มการวิเคราะห์")
 
 with tab2:
-    st.markdown("### 🗺️ Solar PV Density & Transformer Planning")
-    st.write("แผนที่แสดงความหนาแน่นของผู้ยื่นขอขนานไฟโซลาร์เซลล์ เพื่อวิเคราะห์ผลกระทบต่อหม้อแปลงในระบบจำหน่าย")
+    st.markdown("### 🗺️ Solar PV Density & Transformer Planning (อ.สมเด็จ จ.กาฬสินธุ์)")
+    st.write("แผนที่จำลองความหนาแน่นผู้ยื่นขอขนานไฟในพื้นที่อำเภอสมเด็จ เพื่อใช้ประกอบการออกแบบระบบจำหน่ายและขนาดหม้อแปลง")
     
     # ดึงข้อมูลจำลอง
     solar_map_data = get_simulated_solar_data()
@@ -223,7 +223,7 @@ with tab2:
     col_t1, col_t2 = st.columns([1, 2])
     
     with col_t1:
-        st.write("**ตั้งค่าหม้อแปลงจำหน่าย**")
+        st.write("**ตั้งค่าหม้อแปลงจำหน่ายในพื้นที่**")
         tr_size = st.selectbox("ขนาดหม้อแปลง (kVA)", [50, 100, 160, 250, 315, 400, 500])
         safe_factor = st.slider("Safety Factor (%)", 50, 100, 80)
         max_pv_limit = (tr_size * (safe_factor/100)) * 0.7  # ประมาณการรับ PV ไม่เกิน 70% ของโหลดปลอดภัย
@@ -233,19 +233,19 @@ with tab2:
         total_requested_pv = solar_map_data['capacity_kw'].sum()
         status_counts = solar_map_data['status'].value_counts()
         
-        st.write("**ผลวิเคราะห์ภาระระบบจำหน่าย**")
+        st.write("**ผลวิเคราะห์ภาระระบบจำหน่าย อ.สมเด็จ**")
         sc1, sc2, sc3 = st.columns(3)
-        sc1.metric("จำนวนผู้ยื่นขอ", len(solar_map_data))
+        sc1.metric("จำนวนผู้ยื่นขอในพื้นที่", len(solar_map_data))
         sc2.metric("Total PV Capacity", f"{total_requested_pv} kW")
         sc3.metric("Limit (Estimate)", f"{max_pv_limit:.1f} kW")
         
         if total_requested_pv > max_pv_limit:
             st.warning(f"⚠️ คำเตือน: ปริมาณ Solar PV รวม ({total_requested_pv} kW) เกินขีดจำกัดที่แนะนำสำหรับหม้อแปลงขนาด {tr_size} kVA ในโซนนี้")
         else:
-            st.success(f"✅ ข้อมูลเบื้องต้น: หม้อแปลงขนาด {tr_size} kVA ยังสามารถรองรับปริมาณ Solar PV ในโซนนี้ได้")
+            st.success(f"✅ ข้อมูลเบื้องต้น: หม้อแปลงขนาด {tr_size} kVA ในพื้นที่ อ.สมเด็จ ยังสามารถรองรับปริมาณ Solar PV ได้")
 
-    st.markdown("#### รายละเอียดคำร้องขอนำเข้า (Grid Connection Requests)")
+    st.markdown("#### รายละเอียดคำร้องขอในพื้นที่ (Grid Connection Requests - Somdet District)")
     st.dataframe(solar_map_data, use_container_width=True)
 
 st.divider()
-st.caption("Solar Assistant v5.9 | Grid Planning & Heat Map Integration")
+st.caption("Solar Assistant v6.0 | Regional Grid Planning: Somdet, Kalasin")
