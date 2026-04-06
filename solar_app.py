@@ -20,7 +20,7 @@ pea_packages = [
     {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000}
 ]
 
-# --- แก้ไขฟังก์ชัน Data (Fix ValueError: All arrays must be of the same length) ---
+# --- ฟังก์ชันจำลองข้อมูล (Fix ValueError) ---
 def get_simulated_grid_data():
     base_lat, base_lon = 16.7115, 103.7477
     
@@ -33,7 +33,7 @@ def get_simulated_grid_data():
         'capacity_kw': np.random.choice([3, 5, 10], solar_count),
         'weight': np.random.uniform(0.5, 1.0, solar_count),
         'type': 'Solar PV Installed',
-        'color_rgb': [[255, 75, 75]] * solar_count # แก้ไข: สร้าง list ของ list ให้เท่ากับจำนวนแถว
+        'color_rgb': [[255, 75, 75]] * solar_count
     })
     
     # 2. ข้อมูลผู้ขอใช้ไฟติดตั้ง Wall Charger (20 รายการ)
@@ -45,10 +45,13 @@ def get_simulated_grid_data():
         'capacity_kw': np.random.choice([7, 11, 22], ev_count),
         'weight': np.random.uniform(0.5, 1.0, ev_count),
         'type': 'Wall Charger Request',
-        'color_rgb': [[46, 125, 50]] * ev_count # แก้ไข: สร้าง list ของ list ให้เท่ากับจำนวนแถว
+        'color_rgb': [[46, 125, 50]] * ev_count
     })
     
-    return pd.concat([solar_data, ev_data], ignore_index=True)
+    df = pd.concat([solar_data, ev_data], ignore_index=True)
+    # สร้าง Google Maps URL สำหรับแต่ละจุด
+    df['gmaps_url'] = df.apply(lambda r: f"https://www.google.com/maps?q={r['lat']},{r['lon']}", axis=1)
+    return df
 
 # --- Custom CSS ---
 st.markdown("""
@@ -72,6 +75,11 @@ st.markdown("""
         color: white !important; padding: 20px; border-radius: 15px;
         text-decoration: none; font-weight: bold; font-size: 1.2rem;
         margin-top: 20px; box-shadow: 0 5px 15px rgba(245, 124, 0, 0.3);
+    }
+    .gmaps-btn {
+        display: inline-block; padding: 8px 15px; background-color: #4285F4;
+        color: white !important; border-radius: 8px; text-decoration: none;
+        font-size: 0.9rem; margin-top: 5px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -159,24 +167,26 @@ with tab1:
             with col_c: phone = st.text_input("เบอร์โทรศัพท์ *")
             with col_d: lat_long = st.text_input("พิกัด (lat, long) *", placeholder="16.7115, 103.7477")
             
+            if lat_long:
+                try:
+                    gmaps_link = f"https://www.google.com/maps?q={lat_long.replace(' ', '')}"
+                    st.markdown(f'<a href="{gmaps_link}" target="_blank" class="gmaps-btn">📍 ตรวจสอบตำแหน่งบน Google Maps</a>', unsafe_allow_html=True)
+                except: pass
+
             st.info(f"ระบบจะส่งข้อมูลขนาดที่แนะนำ: {pkg['inverter_size']} kW ไปยังฐานข้อมูล")
             
             if st.form_submit_button("🚀 ส่งข้อมูล (Google Forms)"):
                 if name and surname and phone and lat_long:
-                    # สร้าง Google Form URL พร้อม Pre-fill Data (อ้างอิงจากภาพ Google Form ของคุณ)
                     form_id = "1FAIpQLSclm-IwbIB85XoWuO_P8C-o8qHzQyYP4t7Gdvzcc6LpcWgoog"
-                    # จำลอง entry ID (ต้องตรวจสอบจาก Google Form จริงของคุณอีกครั้ง)
                     params = {
-                        "entry.1983389523": f"{pkg['inverter_size']} kW", # ขนาดแนะนำ
-                        "entry.1966863461": lat_long, # พิกัด
-                        "entry.1234567890": name, # ชื่อ (สมมติ ID)
-                        "entry.1112223334": surname, # นามสกุล (สมมติ ID)
-                        "entry.5556667778": phone, # เบอร์โทร (สมมติ ID)
+                        "entry.1983389523": f"{pkg['inverter_size']} kW",
+                        "entry.1966863461": lat_long,
+                        "entry.1234567890": name,
+                        "entry.1112223334": surname,
+                        "entry.5556667778": phone,
                     }
                     query_string = urllib.parse.urlencode(params)
                     form_url = f"https://docs.google.com/forms/d/e/{form_id}/formResponse?{query_string}&submit=Submit"
-                    
-                    # ใน Streamlit Cloud เรามักจะใช้ลิ้งค์ให้กดยืนยัน หรือใช้ requests.post ในเบื้องหลัง
                     st.success(f"เตรียมส่งข้อมูลคุณ {name} เรียบร้อย!")
                     st.markdown(f"[คลิกที่นี่เพื่อยืนยันการส่งข้อมูลไปยังระบบเก็บข้อมูล]({form_url})")
                 else:
@@ -195,7 +205,7 @@ with tab2:
     
     view_state = pdk.ViewState(latitude=16.7115, longitude=103.7477, zoom=14.0, pitch=40)
     
-    # Heatmap Layer สำหรับ Solar PV (สีแดง-ส้ม)
+    # Heatmap Layer สำหรับ Solar PV
     solar_heatmap = pdk.Layer(
         "HeatmapLayer",
         solar_df,
@@ -204,17 +214,10 @@ with tab2:
         radius_pixels=60,
         intensity=1.2,
         threshold=0.1,
-        color_range=[
-            [255, 255, 178],
-            [254, 217, 118],
-            [254, 178, 76],
-            [253, 141, 60],
-            [240, 59, 32],
-            [189, 0, 38]
-        ]
+        color_range=[[255,255,178],[254,217,118],[254,178,76],[253,141,60],[240,59,32],[189,0,38]]
     )
     
-    # Heatmap Layer สำหรับ Wall Charger Request (สีเขียว)
+    # Heatmap Layer สำหรับ Wall Charger Request
     ev_heatmap = pdk.Layer(
         "HeatmapLayer",
         ev_df,
@@ -223,13 +226,7 @@ with tab2:
         radius_pixels=60,
         intensity=1.2,
         threshold=0.1,
-        color_range=[
-            [237, 248, 233],
-            [186, 228, 179],
-            [116, 196, 118],
-            [49, 163, 84],
-            [0, 109, 44]
-        ]
+        color_range=[[237,248,233],[186,228,179],[116,196,118],[49,163,84],[0,109,44]]
     )
 
     # Scatter Layer สำหรับแสดงพิกัดจริง
@@ -246,7 +243,7 @@ with tab2:
         map_style='mapbox://styles/mapbox/dark-v10',
         initial_view_state=view_state,
         layers=[solar_heatmap, ev_heatmap, point_layer],
-        tooltip={"text": "{id}\nType: {type}\nCapacity: {capacity_kw} kW"}
+        tooltip={"text": "{id}\nType: {type}\nCapacity: {capacity_kw} kW\nLocation: {lat}, {lon}"}
     ))
 
     # คำอธิบายสัญลักษณ์
@@ -254,14 +251,15 @@ with tab2:
         <div style="display:flex; flex-wrap:wrap; gap:20px; background:white; padding:15px; border-radius:10px; border:1px solid #eee;">
             <div style="display:flex; align-items:center; gap:8px;">
                 <div style="width:20px;height:20px;background:linear-gradient(to right, #feb24c, #bd0026);border-radius:4px;"></div>
-                <span><b>ความหนาแน่น Solar PV</b> (ผู้ติดตั้งแล้ว 15 ราย)</span>
+                <span><b>ความหนาแน่น Solar PV</b></span>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
                 <div style="width:20px;height:20px;background:linear-gradient(to right, #74c476, #006d2c);border-radius:4px;"></div>
-                <span><b>ความหนาแน่น Wall Charger</b> (ผู้ขอใช้ไฟ 20 ราย)</span>
+                <span><b>ความหนาแน่น Wall Charger</b></span>
             </div>
         </div>
+        <p style="margin-top:10px; font-size:0.9rem; color:#666;">* ท่านสามารถนำค่า Latitude, Longitude จาก Tooltip ไปค้นหาใน Google Maps เพื่อดูสถานที่จริงได้</p>
     """, unsafe_allow_html=True)
 
 st.divider()
-st.caption("Solar Assistant v7.2 | Google Form Integration & Fix ValueError")
+st.caption("Solar Assistant v7.3 | Google Maps Reference Integrated")
