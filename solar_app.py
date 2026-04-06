@@ -22,7 +22,7 @@ st.markdown("""
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     </style>
-    """, unsafe_allow_config=True)
+    """, unsafe_allow_html=True)
 
 # --- ส่วนหัวข้อ ---
 st.title("☀️ ระบบประเมินการติดตั้งโซลาร์เซลล์ (Solar PV Estimator)")
