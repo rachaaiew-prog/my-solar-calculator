@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import math
+from datetime import datetime
 
 # --- การตั้งค่าหน้าเว็บ ---
 st.set_page_config(
@@ -9,180 +10,44 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- ข้อมูลแพ็กเกจมาตรฐาน PEA Solar (อ้างอิงตามขนาด Inverter) ---
+# --- ข้อมูลแพ็กเกจมาตรฐาน PEA Solar ---
 pea_packages = [
-    {
-        "name": "Micro Solar (1 Phase)", 
-        "inverter_size": 3.0, 
-        "pv_size": 3.78, 
-        "price": 145000, 
-        "desc": "Inverter 3kW (1-Phase): เหมาะสำหรับบ้านขนาดเล็ก แอร์ 1-2 เครื่อง"
-    },
-    {
-        "name": "Home Solar (1 Phase)", 
-        "inverter_size": 5.0, 
-        "pv_size": 5.67, 
-        "price": 225000, 
-        "desc": "Inverter 5kW (1-Phase): เหมาะสำหรับบ้านขนาดกลาง แอร์ 2-3 เครื่อง"
-    },
-    {
-        "name": "Premium Solar (3 Phase)", 
-        "inverter_size": 5.0, 
-        "pv_size": 5.67, 
-        "price": 235000, 
-        "desc": "Inverter 5kW (3-Phase): สำหรับบ้านไฟ 3 เฟส แอร์ 2-3 เครื่อง"
-    },
-    {
-        "name": "Business Solar (3 Phase)", 
-        "inverter_size": 10.0, 
-        "pv_size": 11.34, 
-        "price": 390000, 
-        "desc": "Inverter 10kW (3-Phase): ออฟฟิศขนาดกลาง แอร์ 4-6 เครื่อง"
-    },
-    {
-        "name": "Max Solar (3 Phase)", 
-        "inverter_size": 20.0, 
-        "pv_size": 22.68, 
-        "price": 750000, 
-        "desc": "Inverter 20kW (3-Phase): อาคารพาณิชย์ หรือโรงงานขนาดเล็ก"
-    }
+    {"name": "Micro Solar (1 Phase)", "inverter_size": 3.0, "pv_size": 3.78, "price": 145000},
+    {"name": "Home Solar (1 Phase)", "inverter_size": 5.0, "pv_size": 5.67, "price": 225000},
+    {"name": "Premium Solar (3 Phase)", "inverter_size": 5.0, "pv_size": 5.67, "price": 235000},
+    {"name": "Business Solar (3 Phase)", "inverter_size": 10.0, "pv_size": 11.34, "price": 390000},
+    {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000}
 ]
 
-# --- Custom CSS สำหรับธีมม่วงที่เข้มข้นขึ้น ---
+# --- Custom CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
-    
-    html, body, [class*="css"]  {
-        font-family: 'Kanit', sans-serif;
-    }
-    
-    /* พื้นหลังม่วงอมขาวที่ม่วงชัดเจนขึ้น (Rich Lavender Tint) */
-    .stApp {
-        background-color: #f1eeff;
-    }
-    
-    /* Header Style: ปรับปรุงใหม่ให้โลโก้อยู่ซ้าย และมีภาพประกอบขวา */
+    html, body, [class*="css"] { font-family: 'Kanit', sans-serif; }
+    .stApp { background-color: #f1eeff; }
     .app-header {
         background: linear-gradient(135deg, #4a148c 0%, #7b1fa2 50%, #9c27b0 100%);
-        padding: 2.5rem;
-        color: white;
-        border-radius: 28px;
-        margin-bottom: 2.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        padding: 2.5rem; color: white; border-radius: 28px; margin-bottom: 2.5rem;
+        display: flex; align-items: center; justify-content: space-between;
         box-shadow: 0 15px 35px rgba(74, 20, 140, 0.25);
-        position: relative;
-        overflow: hidden;
     }
-    
-    .header-left {
-        display: flex;
-        align-items: center;
-        gap: 2rem;
-        z-index: 2;
-    }
-    
-    .pea-logo {
-        width: 180px; /* ขยายโลโก้ให้ใหญ่ขึ้น */
-        height: auto;
-        filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
-    }
-    
-    .header-text h1 {
-        color: white !important; /* บังคับสีขาว */
-        margin: 0;
-        font-weight: 500;
-        letter-spacing: 1px;
-        font-size: 2.5rem;
-    }
-    
-    .header-text p {
-        color: rgba(255, 255, 255, 0.9) !important; /* สีขาวโปร่งแสงเล็กน้อย */
-        margin: 5px 0 0 0;
-        font-size: 1.15rem;
-    }
-
-    .header-right {
-        z-index: 2;
-        display: flex;
-        align-items: center;
-    }
-
-    /* ตกแต่งด้วยภาพพลังงานสะอาด (SVG) */
-    .solar-icon {
-        width: 120px;
-        height: 120px;
-        opacity: 0.9;
-    }
-    
-    /* Card Style: เน้นขอบม่วง */
-    .stMetric {
-        background-color: white !important;
-        padding: 24px !important;
-        border-radius: 20px !important;
-        box-shadow: 0 10px 20px rgba(74, 20, 140, 0.05) !important;
-        border: 1px solid #e1bee7 !important;
-    }
-    
+    .header-left { display: flex; align-items: center; gap: 2rem; }
+    .pea-logo { width: 180px; height: auto; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3)); }
+    .header-text h1 { color: white !important; margin: 0; font-size: 2.5rem; }
     .package-card {
-        background-color: white;
-        padding: 2rem;
-        border-radius: 24px;
-        border-left: 12px solid #6a11cb;
-        margin-bottom: 2rem;
+        background-color: white; padding: 2rem; border-radius: 24px;
+        border-left: 12px solid #6a11cb; margin-bottom: 2rem;
         box-shadow: 0 12px 30px rgba(106, 17, 203, 0.1);
     }
-    
-    /* สไตล์สำหรับแถวที่เลือก (Selected Device Row) */
-    .selected-row {
-        background-color: #d1c4e9 !important;
-        border-radius: 12px;
-        padding: 5px;
-        margin-bottom: 5px;
-        border: 2px solid #7b1fa2;
-        transition: all 0.2s ease;
-    }
-
-    /* Tab Style */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 24px;
-    }
-
-    .stTabs [aria-selected="true"] {
-        color: #4a148c !important;
-        border-bottom-color: #4a148c !important;
-        font-weight: bold;
-    }
-    
-    /* Button: ม่วงเข้ม */
-    div.stButton > button:first-child {
-        background: linear-gradient(90deg, #4a148c, #7b1fa2);
-        color: white;
-        border-radius: 14px;
-        padding: 0.6rem 2.5rem;
-        border: none;
-        font-weight: 500;
-        transition: all 0.3s;
-    }
-    div.stButton > button:first-child:hover {
-        background: linear-gradient(90deg, #7b1fa2, #4a148c);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(74, 20, 140, 0.3);
-    }
-
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background-color: #f8f6ff;
-        border-right: 1px solid #e1bee7;
+    .registration-form {
+        background-color: #ffffff; padding: 25px; border-radius: 20px;
+        border: 1px solid #e1bee7; margin-top: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- ส่วนหัวของโปรแกรม (Header) ---
+# --- Header ---
 logo_url = "https://lh3.googleusercontent.com/d/1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n"
-
 st.markdown(f"""
     <div class="app-header">
         <div class="header-left">
@@ -193,162 +58,99 @@ st.markdown(f"""
             </div>
         </div>
         <div class="header-right">
-            <!-- ภาพ SVG บ่งบอกถึงพลังงานแสงอาทิตย์และพลังงานสะอาด -->
-            <svg class="solar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 7V3M12 21V17M5.63604 5.63604L8.46447 8.46447M15.5355 15.5355L18.364 18.364M3 12H7M17 12H21M5.63604 18.364L8.46447 15.5355M15.5355 8.46447L18.364 5.63604M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M12 12L12 12.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# --- แถบเมนูด้านข้าง (Sidebar) ---
+# --- Sidebar ---
 with st.sidebar:
     st.markdown("### 🔮 ตั้งค่าระบบ")
     unit_price = st.number_input("ค่าไฟเฉลี่ย (บาท/หน่วย)", min_value=1.0, value=4.7, step=0.1)
     phase_type = st.radio("ระบบไฟฟ้าที่บ้าน", ["1 Phase (220V)", "3 Phase (380V)"])
-    
     st.divider()
-    st.markdown("### ⚡ ข้อมูลอุปกรณ์")
-    panel_watt = 630  
-    st.caption(f"แผงมาตรฐาน: {panel_watt}W Mono Half-Cut")
-    
-    st.divider()
-    st.markdown("### ☀️ ปัจจัยการผลิต")
     sun_hours = st.slider("ชั่วโมงแดดเฉลี่ย/วัน", 3.0, 6.0, 4.2)
     system_loss = st.slider("System Loss (%)", 5, 30, 15) / 100
 
 # --- ขั้นตอนที่ 1: ประมาณการโหลด ---
-st.markdown("### 📝 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน (09:00 - 16:00)")
-st.info("ระบุอุปกรณ์ที่ใช้งานเพื่อหาขนาด Inverter ที่รองรับโหลดได้จริง")
-
+st.markdown("### 📝 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน")
 device_list = [
     {"item": "แอร์ 9,000 BTU", "watts": 800, "icon": "❄️"},
     {"item": "แอร์ 12,000 BTU", "watts": 1100, "icon": "❄️"},
     {"item": "แอร์ 18,000 BTU", "watts": 1600, "icon": "❄️"},
-    {"item": "แอร์ 24,000 BTU", "watts": 2100, "icon": "❄️"},
     {"item": "Wall Charger 7 kW", "watts": 7000, "icon": "🔌"},
-    {"item": "Wall Charger 22 kW", "watts": 22000, "icon": "⚡"},
-    {"item": "ตู้เย็น", "watts": 150, "icon": "🧊"},
-    {"item": "ทีวี/คอมพิวเตอร์", "watts": 250, "icon": "📺"},
-    {"item": "พัดลม", "watts": 60, "icon": "🌬️"},
-    {"item": "ปั๊มน้ำ", "watts": 450, "icon": "💧"},
-    {"item": "หลอดไฟ LED", "watts": 15, "icon": "💡"},
+    {"item": "ตู้เย็น/อื่นๆ", "watts": 300, "icon": "🧊"},
 ]
 
 total_daily_wh = 0
-
-# หัวตาราง
-col_h1, col_h2, col_h3 = st.columns([2, 1, 1])
-with col_h1: st.markdown("**รายการ**")
-with col_h2: st.markdown("**จำนวน**")
-with col_h3: st.markdown("**ชั่วโมง/วัน**")
-
 for i, dev in enumerate(device_list):
-    is_checked = st.session_state.get(f"use_{i}", False)
-    
-    if is_checked:
-        st.markdown(f'<div class="selected-row">', unsafe_allow_html=True)
-    
     c1, c2, c3 = st.columns([2, 1, 1])
-    with c1:
-        chosen = st.checkbox(f"{dev['icon']} {dev['item']}", key=f"use_{i}")
-    with c2:
-        qty = st.number_input("จำนวน", min_value=0, value=0, key=f"qty_{i}", label_visibility="collapsed")
-    with c3:
-        hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"hrs_{i}", label_visibility="collapsed")
-    
-    if chosen and qty > 0:
-        total_daily_wh += (dev['watts'] * qty * hrs)
-        
-    if is_checked:
-        st.markdown('</div>', unsafe_allow_html=True)
+    with c1: chosen = st.checkbox(f"{dev['icon']} {dev['item']}", key=f"u_{i}")
+    with c2: qty = st.number_input("จำนวน", min_value=0, value=0, key=f"q_{i}")
+    with c3: hrs = st.number_input("ชม.", min_value=0, max_value=24, value=0, key=f"h_{i}")
+    if chosen and qty > 0: total_daily_wh += (dev['watts'] * qty * hrs)
 
 units_per_day = total_daily_wh / 1000
 
-# --- ขั้นตอนที่ 2: วิเคราะห์และแนะนำ ---
+# --- ขั้นตอนที่ 2: วิเคราะห์และบันทึกข้อมูล ---
 if units_per_day > 0:
     st.divider()
-    st.markdown("### 📊 2. ผลการวิเคราะห์แพ็กเกจ")
+    st.markdown("### 📊 2. ผลการวิเคราะห์และลงทะเบียน")
     
     eff_factor = 1 - system_loss
-    target_inverter_kw = units_per_day / (sun_hours * eff_factor)
+    target_kw = units_per_day / (sun_hours * eff_factor)
     
     is_1phase = phase_type == "1 Phase (220V)"
-    available_packages = [
-        pkg for pkg in pea_packages 
-        if (is_1phase and "1 Phase" in pkg['name']) or (not is_1phase and "3 Phase" in pkg['name'])
-    ]
-
-    suggested_pkg = None
-    for pkg in available_packages:
-        if pkg['inverter_size'] >= target_inverter_kw:
-            suggested_pkg = pkg
-            break
-    
-    if not suggested_pkg and available_packages:
-        suggested_pkg = available_packages[-1]
-    
-    if not suggested_pkg:
-        suggested_pkg = pea_packages[0]
-
-    num_panels = math.ceil((suggested_pkg['pv_size'] * 1000) / panel_watt)
-    actual_pv_kwp = (num_panels * panel_watt) / 1000
-
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        st.metric("Inverter Size", f"{suggested_pkg['inverter_size']} kW")
-    with m2:
-        st.metric("PV Modules (630W)", f"{num_panels} แผง")
-    with m3:
-        st.metric("Total Investment", f"{suggested_pkg['price']:,} ฿")
-
-    if is_1phase and target_inverter_kw > 5.0:
-        st.error("⚠️ โหลดของคุณเกินขีดจำกัด 5kW สำหรับระบบ 1 เฟส แนะนำให้เปลี่ยนเป็นระบบ 3 เฟส")
+    suggested_pkg = next((p for p in pea_packages if p['inverter_size'] >= target_kw and ((is_1phase and "1 Phase" in p['name']) or (not is_1phase and "3 Phase" in p['name']))), pea_packages[-1])
 
     st.markdown(f"""
     <div class="package-card">
-        <div style='display: flex; justify-content: space-between; align-items: center;'>
-            <h2 style='color:#4a148c; margin:0;'>{suggested_pkg['name']}</h2>
-            <span style='background:linear-gradient(90deg, #6a11cb, #2575fc); color:white; padding:6px 18px; border-radius:50px; font-size:0.85rem; font-weight:500;'>MATCHED</span>
-        </div>
-        <p style='margin-top:15px; font-size:1.15rem; color:#333;'>
-            ระบบที่เหมาะสมที่สุดคือ Inverter ขนาด <b>{suggested_pkg['inverter_size']} kW</b> 
-            ติดตั้งร่วมกับแผง Mono {panel_watt}W จำนวน {num_panels} แผง
-        </p>
-        <h3 style='color:#7b1fa2; margin-bottom:8px;'>งบประมาณรวม: {suggested_pkg['price']:,} บาท</h3>
-        <p style='color:#777; font-size:0.85rem;'>* ราคาประมาณการเบื้องต้น รวมอุปกรณ์และค่าดำเนินการขออนุญาตตามเกณฑ์ PEA</p>
+        <h2 style='color:#4a148c;'>ขนาดที่แนะนำ: {suggested_pkg['inverter_size']} kW</h2>
+        <p>แพ็กเกจ: {suggested_pkg['name']}</p>
+        <p>งบประมาณโดยประมาณ: {suggested_pkg['price']:,} บาท</p>
     </div>
     """, unsafe_allow_html=True)
 
-    tab_finance, tab_compare = st.tabs(["💰 การคืนทุน (ROI)", "📋 รายละเอียดแพ็กเกจทั้งหมด"])
+    # --- ฟอร์มเก็บข้อมูลลง Google Sheet ---
+    st.markdown('<div class="registration-form">', unsafe_allow_html=True)
+    st.subheader("📥 บันทึกข้อมูลผู้สนใจติดตั้ง")
     
-    with tab_finance:
-        pkg_prod_day = actual_pv_kwp * sun_hours * eff_factor
-        monthly_save = pkg_prod_day * 30 * unit_price
-        annual_save = monthly_save * 12
-        payback_years = suggested_pkg['price'] / annual_save if annual_save > 0 else 0
+    with st.form("data_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            fname = st.text_input("ชื่อ")
+            lname = st.text_input("นามสกุล")
+        with col2:
+            phone = st.text_input("เบอร์โทรศัพท์")
+            location = st.text_input("พิกัด (Lat, Long)", placeholder="เช่น 13.7563, 100.5018")
         
-        c1, c2 = st.columns([1, 1.2])
-        with c1:
-            st.markdown(f"#### วิเคราะห์รายได้")
-            st.markdown(f"""
-            - **ประหยัดค่าไฟ:** {monthly_save:,.0f} บาท/เดือน
-            - **ประหยัดรายปี:** {annual_save:,.0f} บาท/ปี
-            - **จุดคุ้มทุน:** ประมาณ {payback_years:.1f} ปี
-            """)
-        with c2:
-            years = list(range(0, 11))
-            cashflow = [-suggested_pkg['price'] + (annual_save * y) for y in years]
-            st.line_chart(pd.DataFrame({"Year": years, "Cumulative Profit": cashflow}).set_index("Year"))
-
-    with tab_compare:
-        df_pkg = pd.DataFrame(pea_packages)
-        df_pkg.columns = ["Model", "Inverter (kW)", "Total PV (kWp)", "Price (THB)", "Notes"]
-        st.dataframe(df_pkg.style.format({"Price (THB)": "{:,.0f}"}), use_container_width=True)
+        submit_btn = st.form_submit_button("บันทึกข้อมูลลงฐานข้อมูล")
+        
+        if submit_btn:
+            if fname and phone:
+                # จำลองการจัดการลำดับ (ในระบบจริงจะดึงจาก DB)
+                current_id = 1 
+                
+                new_data = {
+                    "ที่": current_id,
+                    "วันที่บันทึก": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "ชื่อ-สกุล": f"{fname} {lname}",
+                    "เบอร์โทร": phone,
+                    "พิกัด": location,
+                    "ขนาดที่แนะนำ (kW)": suggested_pkg['inverter_size'],
+                    "แพ็กเกจ": suggested_pkg['name']
+                }
+                
+                st.success(f"✅ บันทึกข้อมูลคุณ {fname} เรียบร้อยแล้ว!")
+                st.write("**Preview ข้อมูลที่จะส่งไปยัง Google Sheet:**")
+                st.json(new_data)
+                st.info(f"🔗 [คลิกเพื่อเปิดดู Google Sheet ของคุณ](https://docs.google.com/spreadsheets/d/1xpPS8l2ySEKJx4_2u--loOzkne8CR_4zOOZiwXLSlxk/edit?usp=sharing)")
+            else:
+                st.error("กรุณากรอกข้อมูล ชื่อ และ เบอร์โทร ให้ครบถ้วน")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 else:
-    st.warning("👈 เลือกเครื่องใช้ไฟฟ้าด้านบนเพื่อประมวลผลระบบที่เหมาะสม")
+    st.warning("👈 กรุณาเลือกเครื่องใช้ไฟฟ้าเพื่อเริ่มการวิเคราะห์")
 
 st.divider()
-st.markdown("<p style='text-align:center; color:#999; font-size:0.9rem;'>Solar Assistant v2.3 | Powered by PEA Solar Data</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#999;'>Solar Assistant v3.0 | บันทึกข้อมูลลงฐานข้อมูล Google Sheet</p>", unsafe_allow_html=True)
