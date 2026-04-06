@@ -24,51 +24,29 @@ pea_packages = [
 def get_simulated_grid_data():
     base_lat, base_lon = 16.7115, 103.7477
     
-    # 1. ข้อมูลหม้อแปลง (Transformer Nodes)
-    transformers = pd.DataFrame({
-        'id': ['TR-01', 'TR-02'],
-        'lat': [16.7130, 16.7100],
-        'lon': [103.7485, 103.7465],
-        'capacity_kva': [160, 250],
-        'type': 'Transformer',
-        'color_rgb': [[0, 0, 255, 255]] * 2 # สีน้ำเงิน
-    })
-    
-    # 2. ข้อมูล Solar (15 รายการ)
+    # 1. ข้อมูล Solar (15 รายการ)
     solar_data = pd.DataFrame({
         'id': [f'S-{i:02d}' for i in range(1, 16)],
-        'lat': base_lat + np.random.randn(15) * 0.006,
-        'lon': base_lon + np.random.randn(15) * 0.006,
+        'lat': base_lat + np.random.randn(15) * 0.004,
+        'lon': base_lon + np.random.randn(15) * 0.004,
         'capacity_kw': np.random.choice([3, 5, 10], 15),
+        'weight': np.random.uniform(0.5, 1.0, 15), # สำหรับ Heat Map
         'type': 'Solar PV',
-        'color_rgb': [[255, 75, 75, 200]] * 15, # สีแดง
-        'assigned_tr': np.random.choice(['TR-01', 'TR-02'], 15)
+        'color_rgb': [255, 75, 75] # สีแดง
     })
     
-    # 3. ข้อมูล EV วงจรที่ 2 (20 รายการ)
+    # 2. ข้อมูล EV วงจรที่ 2 (20 รายการ)
     ev_data = pd.DataFrame({
         'id': [f'EV-{i:02d}' for i in range(1, 21)],
-        'lat': base_lat + np.random.randn(20) * 0.006,
-        'lon': base_lon + np.random.randn(20) * 0.006,
+        'lat': base_lat + np.random.randn(20) * 0.004,
+        'lon': base_lon + np.random.randn(20) * 0.004,
         'capacity_kw': np.random.choice([7, 11], 20),
+        'weight': np.random.uniform(0.5, 1.0, 20), # สำหรับ Heat Map
         'type': 'EV Circuit 2',
-        'color_rgb': [[46, 125, 50, 230]] * 20, # สีเขียว
-        'assigned_tr': np.random.choice(['TR-01', 'TR-02'], 20)
+        'color_rgb': [46, 125, 50] # สีเขียว
     })
     
-    points = pd.concat([solar_data, ev_data], ignore_index=True)
-    
-    paths = []
-    for _, row in points.iterrows():
-        tr = transformers[transformers['id'] == row['assigned_tr']].iloc[0]
-        paths.append({
-            'from_lat': tr['lat'], 'from_lon': tr['lon'],
-            'to_lat': row['lat'], 'to_lon': row['lon'],
-            'tr_id': tr['id'],
-            'type': row['type']
-        })
-        
-    return transformers, points, pd.DataFrame(paths)
+    return pd.concat([solar_data, ev_data], ignore_index=True)
 
 # --- Custom CSS ---
 st.markdown("""
@@ -80,10 +58,6 @@ st.markdown("""
         background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3f51b5 100%);
         padding: 2.5rem; color: white; border-radius: 20px; margin-bottom: 2rem;
         box-shadow: 0 10px 30px rgba(26, 35, 126, 0.2);
-    }
-    .status-card {
-        padding: 1.5rem; border-radius: 15px; margin-bottom: 1rem; border: 1px solid #eee;
-        background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
     .registration-form {
         background-color: #ffffff; padding: 30px; border-radius: 20px;
@@ -107,13 +81,13 @@ st.markdown(f"""
             <img src="https://lh3.googleusercontent.com/d/1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n" style="width:120px; border-radius:10px;">
             <div>
                 <h1 style="color:white; margin:0; font-size:2.2rem;">Solar Assistant Pro</h1>
-                <p style="font-size:1.1rem; opacity:0.9;">วิเคราะห์จุดคุ้มทุนและวางแผนระบบจำหน่ายไฟฟ้า (อ.สมเด็จ)</p>
+                <p style="font-size:1.1rem; opacity:0.9;">วิเคราะห์จุดคุ้มทุนและแผนภาพความหนาแน่นพลังงาน (อ.สมเด็จ)</p>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["💡 วิเคราะห์การติดตั้งรายบ้าน", "🗺️ วิเคราะห์โครงข่าย (Network Analysis)"])
+tab1, tab2 = st.tabs(["💡 วิเคราะห์การติดตั้งรายบ้าน", "🌡️ แผนภูมิความร้อน (Heat Map)"])
 
 with tab1:
     with st.sidebar:
@@ -189,48 +163,82 @@ with tab1:
         st.info("👆 กรุณาเลือกรายการเครื่องใช้ไฟฟ้าเพื่อคำนวณขนาดระบบที่เหมาะสม")
 
 with tab2:
-    st.markdown("### 🗺️ Network Visualization: Solar + EV Integration")
-    st.write("วิเคราะห์ความสัมพันธ์ระหว่างหม้อแปลงกับผู้ใช้ไฟ Solar 15 ราย และ EV 20 ราย")
+    st.markdown("### 🗺️ Energy Density Heat Map (อ.สมเด็จ)")
+    st.write("แสดงความหนาแน่นของการติดตั้ง Solar PV และจุดชาร์จ EV เพื่อวิเคราะห์ความต้องการพลังงานเชิงพื้นที่")
     
-    tr_df, pt_df, path_df = get_simulated_grid_data()
-    view_state = pdk.ViewState(latitude=16.7115, longitude=103.7477, zoom=14.5)
+    data_df = get_simulated_grid_data()
+    solar_df = data_df[data_df['type'] == 'Solar PV']
+    ev_df = data_df[data_df['type'] == 'EV Circuit 2']
     
-    line_layer = pdk.Layer("LineLayer", path_df, get_source_position="[from_lon, from_lat]", get_target_position="[to_lon, to_lat]", get_color="[150, 150, 150, 100]", get_width=2)
-    point_layer = pdk.Layer("ScatterplotLayer", pt_df, get_position="[lon, lat]", get_color="color_rgb", get_radius=50, pickable=True)
-    tr_layer = pdk.Layer("ScatterplotLayer", tr_df, get_position="[lon, lat]", get_color="color_rgb", get_radius=120, pickable=True)
+    view_state = pdk.ViewState(latitude=16.7115, longitude=103.7477, zoom=14.0, pitch=40)
+    
+    # Heatmap Layer สำหรับ Solar (สีแดง-ส้ม)
+    solar_heatmap = pdk.Layer(
+        "HeatmapLayer",
+        solar_df,
+        get_position="[lon, lat]",
+        get_weight="weight",
+        radius_pixels=60,
+        intensity=1,
+        threshold=0.05,
+        color_range=[
+            [255, 255, 178],
+            [254, 217, 118],
+            [254, 178, 76],
+            [253, 141, 60],
+            [240, 59, 32],
+            [189, 0, 38]
+        ]
+    )
+    
+    # Heatmap Layer สำหรับ EV (สีเขียว)
+    ev_heatmap = pdk.Layer(
+        "HeatmapLayer",
+        ev_df,
+        get_position="[lon, lat]",
+        get_weight="weight",
+        radius_pixels=60,
+        intensity=1,
+        threshold=0.05,
+        color_range=[
+            [237, 248, 233],
+            [186, 228, 179],
+            [116, 196, 118],
+            [49, 163, 84],
+            [0, 109, 44]
+        ]
+    )
 
-    st.pydeck_chart(pdk.Deck(map_style='mapbox://styles/mapbox/light-v9', initial_view_state=view_state, layers=[line_layer, point_layer, tr_layer], tooltip={"text": "{id} | {type}\nCapacity: {capacity_kw}{capacity_kva} units"}))
+    # Scatter Layer สำหรับแสดงจุดจริง
+    point_layer = pdk.Layer(
+        "ScatterplotLayer",
+        data_df,
+        get_position="[lon, lat]",
+        get_color="color_rgb",
+        get_radius=30,
+        pickable=True
+    )
 
+    st.pydeck_chart(pdk.Deck(
+        map_style='mapbox://styles/mapbox/dark-v10',
+        initial_view_state=view_state,
+        layers=[solar_heatmap, ev_heatmap, point_layer],
+        tooltip={"text": "{id} | {type}\nCapacity: {capacity_kw} kW"}
+    ))
+
+    # คำอธิบายสัญลักษณ์
     st.markdown("""
-        <div style="display:flex; gap:15px; margin-bottom:20px;">
-            <div style="display:flex; align-items:center; gap:5px;"><div style="width:15px;height:15px;background:#0000FF;border-radius:50%;"></div><span>Transformer</span></div>
-            <div style="display:flex; align-items:center; gap:5px;"><div style="width:15px;height:15px;background:#FF4B4B;border-radius:50%;"></div><span>Solar PV (15 ราย)</span></div>
-            <div style="display:flex; align-items:center; gap:5px;"><div style="width:15px;height:15px;background:#2E7D32;border-radius:50%;"></div><span>EV Circuit 2 (20 ราย)</span></div>
+        <div style="display:flex; gap:20px; background:white; padding:15px; border-radius:10px; border:1px solid #eee;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div style="width:20px;height:20px;background:linear-gradient(to right, #feb24c, #bd0026);border-radius:4px;"></div>
+                <span><b>ความหนาแน่น Solar PV</b> (15 ราย)</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <div style="width:20px;height:20px;background:linear-gradient(to right, #74c476, #006d2c);border-radius:4px;"></div>
+                <span><b>ความหนาแน่น EV Load</b> (20 ราย)</span>
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("### ⚡ Transformer Load & Balance Report")
-    cols = st.columns(len(tr_df))
-    for i, (_, tr) in enumerate(tr_df.iterrows()):
-        with cols[i]:
-            tr_points = pt_df[pt_df['assigned_tr'] == tr['id']]
-            ev_load = tr_points[tr_points['type'] == 'EV Circuit 2']['capacity_kw'].sum()
-            solar_gen = tr_points[tr_points['type'] == 'Solar PV']['capacity_kw'].sum()
-            usage_pct = (ev_load / tr['capacity_kva']) * 100
-            
-            st.markdown(f"""
-                <div class="status-card">
-                    <h4>🏪 {tr['id']} ({tr['capacity_kva']} kVA)</h4>
-                    <p><b>Load EV:</b> {ev_load} kW</p>
-                    <p><b>Solar Gen:</b> {solar_gen} kW</p>
-                    <hr>
-                    <p><b>Utilization:</b> {usage_pct:.1f}%</p>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            if usage_pct > 80: st.error(f"🚨 {tr['id']} วิกฤต: โหลดสูงเกินไป")
-            elif usage_pct > 60: st.warning(f"⚠️ {tr['id']} เสี่ยง: เริ่มหนาแน่น")
-            else: st.success(f"✅ {tr['id']} ปกติ: รองรับโหลดได้")
-
 st.divider()
-st.caption("Solar Assistant v6.4 | Integrated Residential Calculator & Grid Analysis")
+st.caption("Solar Assistant v7.0 | Heat Map Visualization & Residential Planning")
