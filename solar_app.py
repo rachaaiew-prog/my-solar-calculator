@@ -61,10 +61,10 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
     
-    /* โครงสร้างพื้นฐาน */
+    /* โครงสร้างพื้นฐาน - เปลี่ยนเป็นสีเขียวอมขาว #e8f5e9 */
     html, body, [class*="css"] { 
         font-family: 'Kanit', sans-serif; 
-        color: white !important;
+        color: #e8f5e9 !important;
     }
     
     /* พื้นหลังไล่เฉดสีน้ำเงินม่วงเข้ม */
@@ -79,7 +79,7 @@ st.markdown("""
         border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
     [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] label, [data-testid="stSidebar"] h2 {
-        color: white !important;
+        color: #e8f5e9 !important;
     }
 
     /* Header Section */
@@ -91,12 +91,12 @@ st.markdown("""
     .header-title {
         font-size: 2.8rem;
         font-weight: 600;
-        color: white;
+        color: #f0fdf4; /* สีเขียวสว่างนวล */
         margin: 0;
     }
     .header-subtitle {
         font-size: 1.2rem;
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(232, 245, 233, 0.75); /* เขียวอมขาวโปร่งแสง */
     }
 
     /* กล่องข้อมูลแบบ Card (สีเทาเข้มโปร่งแสง) */
@@ -126,13 +126,13 @@ st.markdown("""
     }
     .stTabs [data-baseweb="tab"] {
         border-radius: 12px;
-        color: rgba(255, 255, 255, 0.6);
+        color: rgba(232, 245, 233, 0.5);
         padding: 10px 20px;
         border: none;
     }
     .stTabs [aria-selected="true"] {
-        background-color: #312e81 !important; /* สีน้ำเงินม่วงเข้ม */
-        color: white !important;
+        background-color: #312e81 !important; 
+        color: #f0fdf4 !important;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
 
@@ -165,18 +165,18 @@ st.markdown("""
     /* ปรับแต่ง Input Fields */
     input, textarea, select {
         background-color: rgba(0, 0, 0, 0.2) !important;
-        color: white !important;
+        color: #e8f5e9 !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
     }
     
     /* Metrics */
     [data-testid="stMetricValue"] {
-        color: white !important;
+        color: #f0fdf4 !important;
         font-size: 2rem !important;
         font-weight: 600;
     }
     [data-testid="stMetricLabel"] {
-        color: rgba(255, 255, 255, 0.6) !important;
+        color: rgba(232, 245, 233, 0.6) !important;
     }
     
     /* DataFrame/Table */
@@ -187,18 +187,6 @@ st.markdown("""
     /* Divider */
     hr {
         border-color: rgba(255, 255, 255, 0.1) !important;
-    }
-    
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-    }
-    ::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -218,7 +206,7 @@ with top_col1:
         <div class="analysis-card" style="display: flex; align-items: center; gap: 1.5rem; padding: 15px 25px;">
             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px;">🏠</div>
             <div>
-                <small style="color: rgba(255,255,255,0.5)">Micro Solar (1 Phase)</small><br>
+                <small style="color: rgba(232,245,233,0.5)">Micro Solar (1 Phase)</small><br>
                 <span style="font-size: 1.2rem; font-weight: 500;">ระบบ 1 เฟส</span>
             </div>
         </div>
@@ -229,7 +217,7 @@ with top_col2:
         <div class="analysis-card" style="display: flex; align-items: center; gap: 1.5rem; padding: 15px 25px;">
             <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px;">⚡</div>
             <div>
-                <small style="color: rgba(255,255,255,0.5)">หม้อแปลงเป้าหมาย</small><br>
+                <small style="color: rgba(232,245,233,0.5)">หม้อแปลงเป้าหมาย</small><br>
                 <span style="font-size: 1.2rem; font-weight: 500;">TR 250 (บ้านหนองแวง) 56-02564</span>
             </div>
         </div>
@@ -322,11 +310,11 @@ with tab2:
         
         st.markdown(f"""
         <div class="analysis-card">
-            <small style="color: #60a5fa;">กลางวัน (Solar Impact)</small><br>
+            <small style="color: #a7f3d0;">กลางวัน (Solar Impact)</small><br>
             <span style="font-size:1.5rem;">-{total_solar * 0.7:.1f} kW</span>
         </div>
         <div class="analysis-card">
-            <small style="color: #f87171;">กลางคืน (EV Impact)</small><br>
+            <small style="color: #fca5a5;">กลางคืน (EV Impact)</small><br>
             <span style="font-size:1.5rem;">+{total_ev * 0.85:.1f} kW</span>
         </div>
         """, unsafe_allow_html=True)
@@ -358,4 +346,4 @@ with tab2:
     st.dataframe(grid_df[['id', 'type', 'capacity_kw', 'phase_connection']], use_container_width=True, hide_index=True)
 
 st.divider()
-st.markdown(f"<div style='text-align: center; color: rgba(255,255,255,0.3); font-size: 0.8rem;'>Solar Assistant v7.5 Premium Edition | {tr_full_id}</div>", unsafe_allow_html=True)
+st.markdown(f"<div style='text-align: center; color: rgba(232,245,233,0.3); font-size: 0.8rem;'>Solar Assistant v7.5 Premium Edition | {tr_full_id}</div>", unsafe_allow_html=True)
