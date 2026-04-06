@@ -20,29 +20,29 @@ pea_packages = [
     {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000}
 ]
 
-# --- ข้อมูลจำลอง Map Data (Solar 15, EV 20 - อ.สมเด็จ จ.กาฬสินธุ์) ---
+# --- ข้อมูลจำลอง Map Data (Solar 15, Wall Charger 20 - อ.สมเด็จ จ.กาฬสินธุ์) ---
 def get_simulated_grid_data():
     base_lat, base_lon = 16.7115, 103.7477
     
-    # 1. ข้อมูล Solar (15 รายการ)
+    # 1. ข้อมูลผู้ติดตั้งโซล่าเซลล์ (15 รายการ)
     solar_data = pd.DataFrame({
         'id': [f'S-{i:02d}' for i in range(1, 16)],
         'lat': base_lat + np.random.randn(15) * 0.004,
         'lon': base_lon + np.random.randn(15) * 0.004,
         'capacity_kw': np.random.choice([3, 5, 10], 15),
-        'weight': np.random.uniform(0.5, 1.0, 15), # สำหรับ Heat Map
-        'type': 'Solar PV',
+        'weight': np.random.uniform(0.5, 1.0, 15),
+        'type': 'Solar PV Installed',
         'color_rgb': [255, 75, 75] # สีแดง
     })
     
-    # 2. ข้อมูล EV วงจรที่ 2 (20 รายการ)
+    # 2. ข้อมูลผู้ขอใช้ไฟติดตั้ง Wall Charger (20 รายการ)
     ev_data = pd.DataFrame({
         'id': [f'EV-{i:02d}' for i in range(1, 21)],
         'lat': base_lat + np.random.randn(20) * 0.004,
         'lon': base_lon + np.random.randn(20) * 0.004,
-        'capacity_kw': np.random.choice([7, 11], 20),
-        'weight': np.random.uniform(0.5, 1.0, 20), # สำหรับ Heat Map
-        'type': 'EV Circuit 2',
+        'capacity_kw': np.random.choice([7, 11, 22], 20),
+        'weight': np.random.uniform(0.5, 1.0, 20),
+        'type': 'Wall Charger Request',
         'color_rgb': [46, 125, 50] # สีเขียว
     })
     
@@ -163,24 +163,24 @@ with tab1:
         st.info("👆 กรุณาเลือกรายการเครื่องใช้ไฟฟ้าเพื่อคำนวณขนาดระบบที่เหมาะสม")
 
 with tab2:
-    st.markdown("### 🗺️ Energy Density Heat Map (อ.สมเด็จ)")
-    st.write("แสดงความหนาแน่นของการติดตั้ง Solar PV และจุดชาร์จ EV เพื่อวิเคราะห์ความต้องการพลังงานเชิงพื้นที่")
+    st.markdown("### 🗺️ Infrastructure Request Heat Map (อ.สมเด็จ)")
+    st.write("แสดงความหนาแน่นเชิงพื้นที่ของจุดติดตั้ง Solar PV และผู้ขอใช้ไฟสำหรับ Wall Charger")
     
     data_df = get_simulated_grid_data()
-    solar_df = data_df[data_df['type'] == 'Solar PV']
-    ev_df = data_df[data_df['type'] == 'EV Circuit 2']
+    solar_df = data_df[data_df['type'] == 'Solar PV Installed']
+    ev_df = data_df[data_df['type'] == 'Wall Charger Request']
     
     view_state = pdk.ViewState(latitude=16.7115, longitude=103.7477, zoom=14.0, pitch=40)
     
-    # Heatmap Layer สำหรับ Solar (สีแดง-ส้ม)
+    # Heatmap Layer สำหรับ Solar PV (สีแดง-ส้ม)
     solar_heatmap = pdk.Layer(
         "HeatmapLayer",
         solar_df,
         get_position="[lon, lat]",
         get_weight="weight",
         radius_pixels=60,
-        intensity=1,
-        threshold=0.05,
+        intensity=1.2,
+        threshold=0.1,
         color_range=[
             [255, 255, 178],
             [254, 217, 118],
@@ -191,15 +191,15 @@ with tab2:
         ]
     )
     
-    # Heatmap Layer สำหรับ EV (สีเขียว)
+    # Heatmap Layer สำหรับ Wall Charger Request (สีเขียว)
     ev_heatmap = pdk.Layer(
         "HeatmapLayer",
         ev_df,
         get_position="[lon, lat]",
         get_weight="weight",
         radius_pixels=60,
-        intensity=1,
-        threshold=0.05,
+        intensity=1.2,
+        threshold=0.1,
         color_range=[
             [237, 248, 233],
             [186, 228, 179],
@@ -209,13 +209,13 @@ with tab2:
         ]
     )
 
-    # Scatter Layer สำหรับแสดงจุดจริง
+    # Scatter Layer สำหรับแสดงพิกัดจริง
     point_layer = pdk.Layer(
         "ScatterplotLayer",
         data_df,
         get_position="[lon, lat]",
         get_color="color_rgb",
-        get_radius=30,
+        get_radius=35,
         pickable=True
     )
 
@@ -223,22 +223,22 @@ with tab2:
         map_style='mapbox://styles/mapbox/dark-v10',
         initial_view_state=view_state,
         layers=[solar_heatmap, ev_heatmap, point_layer],
-        tooltip={"text": "{id} | {type}\nCapacity: {capacity_kw} kW"}
+        tooltip={"text": "{id}\nType: {type}\nCapacity: {capacity_kw} kW"}
     ))
 
     # คำอธิบายสัญลักษณ์
     st.markdown("""
-        <div style="display:flex; gap:20px; background:white; padding:15px; border-radius:10px; border:1px solid #eee;">
+        <div style="display:flex; flex-wrap:wrap; gap:20px; background:white; padding:15px; border-radius:10px; border:1px solid #eee;">
             <div style="display:flex; align-items:center; gap:8px;">
                 <div style="width:20px;height:20px;background:linear-gradient(to right, #feb24c, #bd0026);border-radius:4px;"></div>
-                <span><b>ความหนาแน่น Solar PV</b> (15 ราย)</span>
+                <span><b>ความหนาแน่น Solar PV</b> (ผู้ติดตั้งแล้ว 15 ราย)</span>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
                 <div style="width:20px;height:20px;background:linear-gradient(to right, #74c476, #006d2c);border-radius:4px;"></div>
-                <span><b>ความหนาแน่น EV Load</b> (20 ราย)</span>
+                <span><b>ความหนาแน่น Wall Charger</b> (ผู้ขอใช้ไฟ 20 ราย)</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
 
 st.divider()
-st.caption("Solar Assistant v7.0 | Heat Map Visualization & Residential Planning")
+st.caption("Solar Assistant v7.1 | Infrastructure Demand Analysis & Residential Planning")
