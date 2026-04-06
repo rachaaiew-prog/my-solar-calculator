@@ -57,8 +57,9 @@ st.markdown("""
         font-family: 'Kanit', sans-serif;
     }
     
-    .main {
-        background-color: #f8f9ff;
+    /* ปรับแต่งสีพื้นหลังหลักให้เป็นม่วงอมขาว (Off-white Purple) */
+    .stApp {
+        background-color: #f9f8ff;
     }
     
     /* Header Style */
