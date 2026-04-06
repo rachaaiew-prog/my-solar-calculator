@@ -4,47 +4,125 @@ import math
 
 # --- การตั้งค่าหน้าเว็บ ---
 st.set_page_config(
-    page_title="Solar Calculate Pro | ระบบวิเคราะห์โซลาร์เซลล์",
-    page_icon="☀️",
+    page_title="Solar Purple Pro | วิเคราะห์ระบบโซลาร์เซลล์",
+    page_icon="🔮",
     layout="wide"
 )
 
-# --- ข้อมูลแพ็กเกจมาตรฐาน PEA Solar (อ้างอิงจากขนาด Inverter) ---
-# ราคาประมาณการรวมติดตั้งและขออนุญาต
+# --- ข้อมูลแพ็กเกจมาตรฐาน PEA Solar (อ้างอิงตามขนาด Inverter) ---
 pea_packages = [
-    {"name": "Micro Solar (1 Phase)", "inverter_size": 3.0, "pv_size": 3.78, "price": 145000, "desc": "Inverter 3kW: เหมาะสำหรับบ้านขนาดเล็ก แอร์ 1-2 เครื่อง"},
-    {"name": "Home Solar (1 Phase)", "inverter_size": 5.0, "pv_size": 5.67, "price": 225000, "desc": "Inverter 5kW: เหมาะสำหรับบ้านขนาดกลาง แอร์ 2-3 เครื่อง"},
-    {"name": "Premium Solar (3 Phase)", "inverter_size": 5.0, "pv_size": 5.67, "price": 235000, "desc": "Inverter 5kW (3 Phase): สำหรับบ้านขนาดกลาง แอร์ 2-3 เครื่อง"},
-    {"name": "Business Solar (3 Phase)", "inverter_size": 10.0, "pv_size": 11.34, "price": 390000, "desc": "Inverter 10kW: ออฟฟิศขนาดกลาง แอร์ 4-6 เครื่อง"},
-    {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000, "desc": "Inverter 20kW: อาคารพาณิชย์ หรือโรงงานขนาดเล็ก"}
+    {
+        "name": "Micro Solar (1 Phase)", 
+        "inverter_size": 3.0, 
+        "pv_size": 3.78, 
+        "price": 145000, 
+        "desc": "Inverter 3kW (1-Phase): เหมาะสำหรับบ้านขนาดเล็ก แอร์ 1-2 เครื่อง"
+    },
+    {
+        "name": "Home Solar (1 Phase)", 
+        "inverter_size": 5.0, 
+        "pv_size": 5.67, 
+        "price": 225000, 
+        "desc": "Inverter 5kW (1-Phase): เหมาะสำหรับบ้านขนาดกลาง แอร์ 2-3 เครื่อง"
+    },
+    {
+        "name": "Premium Solar (3 Phase)", 
+        "inverter_size": 5.0, 
+        "pv_size": 5.67, 
+        "price": 235000, 
+        "desc": "Inverter 5kW (3-Phase): สำหรับบ้านไฟ 3 เฟส แอร์ 2-3 เครื่อง"
+    },
+    {
+        "name": "Business Solar (3 Phase)", 
+        "inverter_size": 10.0, 
+        "pv_size": 11.34, 
+        "price": 390000, 
+        "desc": "Inverter 10kW (3-Phase): ออฟฟิศขนาดกลาง แอร์ 4-6 เครื่อง"
+    },
+    {
+        "name": "Max Solar (3 Phase)", 
+        "inverter_size": 20.0, 
+        "pv_size": 22.68, 
+        "price": 750000, 
+        "desc": "Inverter 20kW (3-Phase): อาคารพาณิชย์ หรือโรงงานขนาดเล็ก"
+    }
 ]
 
-# --- CSS ตกแต่งหน้าจอ ---
+# --- Custom CSS สำหรับธีมม่วงทันสมัย ---
 st.markdown("""
     <style>
-    .main { background-color: #f4f7f6; }
-    .stMetric {
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
+    
+    html, body, [class*="css"]  {
+        font-family: 'Kanit', sans-serif;
     }
+    
+    .main {
+        background-color: #f8f9ff;
+    }
+    
+    /* Header Style */
     .app-header {
-        background-color: #004d40;
-        padding: 2.5rem;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        padding: 3rem;
         color: white;
-        border-radius: 20px;
-        margin-bottom: 2rem;
+        border-radius: 24px;
+        margin-bottom: 2.5rem;
         text-align: center;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 12px 24px rgba(106, 17, 203, 0.2);
     }
+    
+    /* Card Style */
+    .stMetric {
+        background-color: white !important;
+        padding: 24px !important;
+        border-radius: 20px !important;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.04) !important;
+        border: 1px solid #eee !important;
+    }
+    
     .package-card {
-        background-color: #ffffff;
-        padding: 1.5rem;
+        background-color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        border-right: 10px solid #6a11cb;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    
+    /* Tab Style */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: transparent;
+        border-radius: 4px 4px 0px 0px;
+        gap: 1px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .stTabs [aria-selected="true"] {
+        color: #6a11cb !important;
+        border-bottom-color: #6a11cb !important;
+        font-weight: bold;
+    }
+    
+    /* Button Customization */
+    div.stButton > button:first-child {
+        background-color: #6a11cb;
+        color: white;
         border-radius: 12px;
-        border-left: 8px solid #ffc107;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        padding: 0.5rem 2rem;
+        border: none;
+        transition: all 0.3s;
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #2575fc;
+        transform: translateY(-2px);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -52,50 +130,50 @@ st.markdown("""
 # --- ส่วนหัวของโปรแกรม ---
 st.markdown("""
     <div class="app-header">
-        <h1>☀️ Solar PV Investment Analyzer</h1>
-        <p>วิเคราะห์โหลดไฟฟ้าและแนะนำแพ็กเกจตามขนาด Inverter (อ้างอิงราคา PEA Solar)</p>
+        <h1 style='font-weight: 500;'>🔮 Solar Purple Investment Analyzer</h1>
+        <p style='font-size: 1.1rem; opacity: 0.9;'>วิเคราะห์ระบบโซลาร์เซลล์ด้วยระบบอัจฉริยะ (อ้างอิง Inverter Size)</p>
     </div>
     """, unsafe_allow_html=True)
 
 # --- แถบเมนูด้านข้าง (Sidebar) ---
 with st.sidebar:
-    st.header("⚙️ ตั้งค่าพื้นฐาน")
-    unit_price = st.number_input("ราคาค่าไฟต่อหน่วย (บาท)", min_value=1.0, value=4.7, step=0.1)
+    st.image("https://cdn-icons-png.flaticon.com/512/3222/3222800.png", width=80)
+    st.title("Settings")
+    st.markdown("---")
+    unit_price = st.number_input("ค่าไฟเฉลี่ย (บาท/หน่วย)", min_value=1.0, value=4.7, step=0.1)
     phase_type = st.radio("ระบบไฟฟ้าที่บ้าน", ["1 Phase (220V)", "3 Phase (380V)"])
     
     st.divider()
-    st.header("📦 ข้อมูลแผงโซลาร์")
-    panel_watt = 630  # กำหนดขนาดแผงเป็น 630W ตามโจทย์
-    st.info(f"ขนาดแผงที่ใช้คำนวณ: {panel_watt}W")
+    st.markdown("### 📦 ข้อมูลทางเทคนิค")
+    panel_watt = 630  
+    st.caption(f"มาตรฐานแผง: {panel_watt}W Mono Half-Cut")
     
     st.divider()
-    st.header("🌍 ปัจจัยการผลิต")
+    st.markdown("### 🌍 ตัวแปรการผลิต")
     sun_hours = st.slider("ชั่วโมงแดดผลิตไฟเฉลี่ย/วัน", 3.0, 6.0, 4.2)
-    system_loss = st.slider("ความสูญเสียในระบบ (Loss) (%)", 5, 30, 15) / 100
-    st.caption("แนะนำ 15% สำหรับการติดตั้งมาตรฐาน")
+    system_loss = st.slider("System Loss (%)", 5, 30, 15) / 100
 
-# --- ขั้นตอนที่ 1: เครื่องคำนวณโหลดไฟฟ้า ---
-st.header("📝 1. ประมาณการโหลดไฟฟ้าจากอุปกรณ์")
-st.info("ระบุเครื่องใช้ไฟฟ้าที่เปิดใช้งานในช่วงกลางวัน (09:00 - 16:00)")
+# --- ขั้นตอนที่ 1: ประมาณการโหลด ---
+st.markdown("### 📝 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน")
+st.info("กรุณาเลือกอุปกรณ์ที่เปิดใช้งานในช่วง 09:00 - 16:00 เพื่อความแม่นยำในการคืนทุน")
 
 device_list = [
-    {"item": "แอร์ 9,000 BTU (Inverter)", "watts": 800, "icon": "❄️"},
-    {"item": "แอร์ 12,000 BTU (Inverter)", "watts": 1100, "icon": "❄️"},
-    {"item": "แอร์ 18,000 BTU (Inverter)", "watts": 1600, "icon": "❄️"},
-    {"item": "แอร์ 24,000 BTU (Inverter)", "watts": 2100, "icon": "❄️"}, # เพิ่มตามโจทย์
-    {"item": "ตู้เย็น (ขนาดกลาง)", "watts": 150, "icon": "🧊"},
-    {"item": "ทีวี และเครื่องเสียง", "watts": 120, "icon": "📺"},
+    {"item": "แอร์ 9,000 BTU", "watts": 800, "icon": "❄️"},
+    {"item": "แอร์ 12,000 BTU", "watts": 1100, "icon": "❄️"},
+    {"item": "แอร์ 18,000 BTU", "watts": 1600, "icon": "❄️"},
+    {"item": "แอร์ 24,000 BTU", "watts": 2100, "icon": "❄️"},
+    {"item": "ตู้เย็น", "watts": 150, "icon": "🧊"},
+    {"item": "ทีวี/คอมพิวเตอร์", "watts": 250, "icon": "📺"},
     {"item": "พัดลม", "watts": 60, "icon": "🌬️"},
-    {"item": "คอมพิวเตอร์ / โน้ตบุ๊ก", "watts": 250, "icon": "💻"},
-    {"item": "ปั๊มน้ำ (ทำงานเป็นช่วงๆ)", "watts": 400, "icon": "💧"},
+    {"item": "ปั๊มน้ำ", "watts": 450, "icon": "💧"},
     {"item": "หลอดไฟ LED", "watts": 15, "icon": "💡"},
 ]
 
 total_daily_wh = 0
 col_h1, col_h2, col_h3 = st.columns([2, 1, 1])
-with col_h1: st.write("**เครื่องใช้ไฟฟ้า**")
-with col_h2: st.write("**จำนวน (เครื่อง)**")
-with col_h3: st.write("**ชม./วัน (ช่วงมีแดด)**")
+with col_h1: st.markdown("**รายการ**")
+with col_h2: st.markdown("**จำนวน**")
+with col_h3: st.markdown("**ชั่วโมง/วัน**")
 
 for i, dev in enumerate(device_list):
     c1, c2, c3 = st.columns([2, 1, 1])
@@ -111,82 +189,95 @@ for i, dev in enumerate(device_list):
 
 units_per_day = total_daily_wh / 1000
 
-# --- ขั้นตอนที่ 2: วิเคราะห์ขนาดและจับคู่แพ็กเกจ ---
+# --- ขั้นตอนที่ 2: วิเคราะห์และแนะนำ ---
 if units_per_day > 0:
     st.divider()
-    st.header("📊 2. ผลการวิเคราะห์และแพ็กเกจที่แนะนำ")
+    st.markdown("### 📊 2. แพ็กเกจที่แนะนำสำหรับคุณ")
     
-    # คำนวณขนาด Inverter ที่ต้องใช้ (kW) โดยอิงจาก Peak Load หรือการผลิตที่ต้องการ
+    # Logic การคำนวณ Inverter
     eff_factor = 1 - system_loss
-    # ประมาณการขนาด Inverter จากหน่วยที่ใช้ต่อวัน / ชม.แดด
     target_inverter_kw = units_per_day / (sun_hours * eff_factor)
     
-    # ค้นหาแพ็กเกจที่เหมาะสม (อ้างอิงจากขนาด Inverter >= target_inverter_kw)
+    # กรองตามเฟส
+    is_1phase = phase_type == "1 Phase (220V)"
+    available_packages = [
+        pkg for pkg in pea_packages 
+        if (is_1phase and "1 Phase" in pkg['name']) or (not is_1phase and "3 Phase" in pkg['name'])
+    ]
+
+    # เลือกแพ็กเกจตามขนาด Inverter
     suggested_pkg = None
-    for pkg in pea_packages:
+    for pkg in available_packages:
         if pkg['inverter_size'] >= target_inverter_kw:
-            if "3 Phase" in pkg['name'] and phase_type == "1 Phase (220V)":
-                continue
             suggested_pkg = pkg
             break
     
-    if not suggested_pkg: suggested_pkg = pea_packages[-1]
+    if not suggested_pkg and available_packages:
+        suggested_pkg = available_packages[-1]
+    
+    if not suggested_pkg:
+        suggested_pkg = pea_packages[0]
 
-    # คำนวณจำนวนแผง (ใช้แผง 630W)
-    # ปกติ PV Size จะใหญ่กว่า Inverter Size เล็กน้อย (DC/AC Ratio) 
-    # ในที่นี้ใช้ PV Size จากแพ็กเกจมาหาจำนวนแผง
+    # คำนวณแผง 630W
     num_panels = math.ceil((suggested_pkg['pv_size'] * 1000) / panel_watt)
     actual_pv_kwp = (num_panels * panel_watt) / 1000
 
-    # แสดงผลผ่าน Metrics
+    # Display Metrics
     m1, m2, m3 = st.columns(3)
-    m1.metric("ขนาด Inverter ที่แนะนำ", f"{suggested_pkg['inverter_size']} kW")
-    m2.metric("จำนวนแผง (630W)", f"{num_panels} แผง")
-    m3.metric("งบลงทุนประมาณการ", f"{suggested_pkg['price']:,} ฿")
+    with m1:
+        st.metric("Inverter Recommended", f"{suggested_pkg['inverter_size']} kW")
+    with m2:
+        st.metric("Total PV Panels", f"{num_panels} แผง")
+    with m3:
+        st.metric("Estimated Investment", f"{suggested_pkg['price']:,} ฿")
 
-    # แสดงรายละเอียดแพ็กเกจ
+    # Warning for Phase Limit
+    if is_1phase and target_inverter_kw > 5.0:
+        st.error("⚠️ โหลดของคุณสูงเกินระบบ 1-Phase (5kW) แนะนำให้พิจารณาปรับปรุงระบบไฟฟ้าเป็น 3-Phase")
+
+    # Package Card UI
     st.markdown(f"""
     <div class="package-card">
-        <h2 style='color:#004d40; margin-top:0;'>📦 แนะนำแพ็กเกจ: {suggested_pkg['name']}</h2>
-        <p style='font-size:1.2rem;'><b>Inverter:</b> {suggested_pkg['inverter_size']} kW | <b>แผง PV รวม:</b> {actual_pv_kwp:.2f} kWp | <b>งบประมาณ:</b> {suggested_pkg['price']:,} บาท</p>
-        <p style='color:#555;'><i>{suggested_pkg['desc']}</i></p>
-        <p style='font-size:0.85rem; color:#888;'>* คำนวณด้วยแผงขนาด {panel_watt}W จำนวน {num_panels} แผง (อ้างอิงราคามาตรฐาน PEA Solar)</p>
+        <div style='display: flex; justify-content: space-between; align-items: center;'>
+            <h2 style='color:#6a11cb; margin:0;'>{suggested_pkg['name']}</h2>
+            <span style='background:#6a11cb; color:white; padding:4px 15px; border-radius:50px; font-size:0.8rem;'>RECOMMENDED</span>
+        </div>
+        <p style='margin-top:10px; font-size:1.1rem; color:#444;'>
+            เน้นการติดตั้งที่ได้มาตรฐานด้วย Inverter ขนาด <b>{suggested_pkg['inverter_size']} kW</b> 
+            พร้อมแผงประสิทธิภาพสูงขนาด {panel_watt}W จำนวน {num_panels} แผง
+        </p>
+        <h3 style='color:#2575fc; margin-bottom:5px;'>งบประมาณ: {suggested_pkg['price']:,} บาท</h3>
+        <p style='color:#888; font-size:0.85rem;'>* รวมค่าออกแบบ ติดตั้ง และขออนุญาตขนานไฟเรียบร้อยแล้ว (อ้างอิงราคา PEA Solar)</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # วิเคราะห์ทางการเงิน
-    pkg_prod_day = actual_pv_kwp * sun_hours * eff_factor
-    monthly_save = pkg_prod_day * 30 * unit_price
-    annual_save = monthly_save * 12
-    payback_years = suggested_pkg['price'] / annual_save if annual_save > 0 else 0
-    co2_saved = (pkg_prod_day * 365 * 0.5) / 1000
-
-    res_tab1, res_tab2, res_tab3 = st.tabs(["💰 วิเคราะห์การเงิน", "🌳 พลังงานสะอาด", "📋 ตารางเปรียบเทียบ"])
+    # Analytics Tabs
+    tab_finance, tab_compare = st.tabs(["💰 การวิเคราะห์การคืนทุน", "📋 ตารางเปรียบเทียบทุกรุ่น"])
     
-    with res_tab1:
+    with tab_finance:
+        pkg_prod_day = actual_pv_kwp * sun_hours * eff_factor
+        monthly_save = pkg_prod_day * 30 * unit_price
+        annual_save = monthly_save * 12
+        payback_years = suggested_pkg['price'] / annual_save if annual_save > 0 else 0
+        
         c1, c2 = st.columns([1, 1])
         with c1:
-            st.success(f"ประหยัดค่าไฟได้ประมาณ: **{monthly_save:,.0f} บาท/เดือน**")
-            st.info(f"ประหยัดได้ต่อปี: **{annual_save:,.0f} บาท/ปี**")
-            st.warning(f"ระยะเวลาคืนทุน: **{payback_years:.1f} ปี**")
+            st.markdown(f"#### สรุปความคุ้มค่า")
+            st.write(f"📉 ประหยัดค่าไฟได้ประมาณ: **{monthly_save:,.0f} บาท/เดือน**")
+            st.write(f"💸 ประหยัดรวมต่อปี: **{annual_save:,.0f} บาท/ปี**")
+            st.write(f"⏳ ระยะเวลาคืนทุน: **{payback_years:.1f} ปี**")
         with c2:
             years = list(range(0, 11))
             cashflow = [-suggested_pkg['price'] + (annual_save * y) for y in years]
-            st.line_chart(pd.DataFrame({"ปีที่": years, "กระแสเงินสดสะสม": cashflow}).set_index("ปีที่"))
+            st.line_chart(pd.DataFrame({"Year": years, "Net Profit/Loss": cashflow}).set_index("Year"))
 
-    with res_tab2:
-        st.write("### ผลกระทบต่อสิ่งแวดล้อม")
-        st.write(f"🍃 ช่วยลดการปล่อยก๊าซ CO2 ได้ประมาณ **{co2_saved:.2f} ตันต่อปี**")
-        st.write(f"🌳 เทียบเท่ากับการปลูกต้นไม้เพิ่มขึ้น **{int(co2_saved * 100)} ต้นต่อปี**")
-
-    with res_tab3:
-        st.write("### ตารางแพ็กเกจมาตรฐาน PEA Solar (อิงตามขนาด Inverter)")
+    with tab_compare:
         df_pkg = pd.DataFrame(pea_packages)
-        df_pkg.columns = ["ชื่อแพ็กเกจ", "ขนาด Inverter (kW)", "ขนาดแผงอ้างอิง (kWp)", "ราคา (บาท)", "รายละเอียด"]
-        st.dataframe(df_pkg.style.format({"ราคา (บาท)": "{:,.0f}"}), use_container_width=True)
+        df_pkg.columns = ["Model", "Inverter (kW)", "PV (kWp)", "Price (THB)", "Details"]
+        st.table(df_pkg.style.format({"Price (THB)": "{:,.0f}"}))
 
 else:
-    st.warning("👈 กรุณาเลือกเครื่องใช้ไฟฟ้าและระบุข้อมูลการใช้งานเพื่อเริ่มการประเมิน")
+    st.warning("👈 กรุณาระบุเครื่องใช้ไฟฟ้าที่ต้องการใช้พลังงานแสงอาทิตย์")
 
 st.divider()
-st.caption(f"หมายเหตุ: คำนวณโดยใช้แผงโซลาร์ขนาด {panel_watt}W เป็นมาตรฐาน | อ้างอิงชั่วโมงแดดเฉลี่ยในประเทศไทย 4.2 ชม./วัน")
+st.markdown("<p style='text-align:center; color:#bbb;'>Solar Purple v2.0 | Reference: PEA Solar Standard Pricing</p>", unsafe_allow_html=True)
