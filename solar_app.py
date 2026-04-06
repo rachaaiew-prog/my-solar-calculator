@@ -20,38 +20,36 @@ pea_packages = [
     {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000}
 ]
 
-# --- ฟังก์ชันจำลองข้อมูลสำหรับ Heat Map (จำลองข้อมูลจากระบบจำหน่าย) ---
+# --- ฟังก์ชันจำลองข้อมูลสำหรับ Heat Map (เน้นหม้อแปลง 1 เครื่อง: Solar 2, EV 5) ---
 def get_simulated_grid_data():
+    # พิกัดตำแหน่งหม้อแปลง (ศูนย์กลาง)
     base_lat, base_lon = 16.7115, 103.7477
     
-    # 1. ข้อมูลผู้ติดตั้งโซล่าเซลล์ (Solar PV Installed) - สีส้มเข้มขอบทอง
-    solar_count = 25
+    # 1. ข้อมูลผู้ติดตั้งโซล่าเซลล์ (2 ราย)
     solar_data = pd.DataFrame({
-        'id': [f'Solar-{i:02d}' for i in range(1, solar_count + 1)],
-        'lat': base_lat + np.random.randn(solar_count) * 0.005,
-        'lon': base_lon + np.random.randn(solar_count) * 0.005,
-        'capacity_kw': np.random.choice([3, 5, 10, 20], solar_count),
-        'weight': np.random.uniform(0.6, 1.0, solar_count),
+        'id': ['Solar-01 (TR-01)', 'Solar-02 (TR-01)'],
+        'lat': [base_lat + 0.0012, base_lat - 0.0008],
+        'lon': [base_lon + 0.0009, base_lon - 0.0011],
+        'capacity_kw': [5, 10],
+        'weight': [0.9, 1.0],
         'type': 'Solar PV Installed',
-        'color_rgb': [[255, 69, 0, 200]] * solar_count, # OrangeRed
-        'line_color': [[255, 215, 0]] * solar_count # Gold border
+        'color_rgb': [[255, 69, 0, 230]] * 2, 
+        'line_color': [[255, 215, 0]] * 2 
     })
     
-    # 2. ข้อมูลผู้ขอใช้ไฟติดตั้ง Wall Charger (EV Request) - สีเขียวนีออน
-    ev_count = 30
+    # 2. ข้อมูลผู้ขอใช้ไฟติดตั้ง Wall Charger (5 ราย)
     ev_data = pd.DataFrame({
-        'id': [f'EV-{i:02d}' for i in range(1, ev_count + 1)],
-        'lat': base_lat + np.random.randn(ev_count) * 0.006,
-        'lon': base_lon + np.random.randn(ev_count) * 0.006,
-        'capacity_kw': np.random.choice([7, 11, 22], ev_count),
-        'weight': np.random.uniform(0.5, 0.9, ev_count),
+        'id': [f'EV-{i:02d} (TR-01)' for i in range(1, 6)],
+        'lat': [base_lat + 0.002, base_lat + 0.0015, base_lat - 0.001, base_lat - 0.002, base_lat + 0.0005],
+        'lon': [base_lon + 0.001, base_lon - 0.0015, base_lon + 0.002, base_lon + 0.0005, base_lon - 0.0025],
+        'capacity_kw': [7, 7, 11, 7, 22],
+        'weight': [0.7, 0.7, 0.8, 0.7, 1.0],
         'type': 'EV Wall Charger Request',
-        'color_rgb': [[57, 255, 20, 200]] * ev_count, # Neon Green
-        'line_color': [[255, 255, 255]] * ev_count
+        'color_rgb': [[57, 255, 20, 230]] * 5,
+        'line_color': [[255, 255, 255]] * 5
     })
     
     df = pd.concat([solar_data, ev_data], ignore_index=True)
-    # เพิ่ม Google Maps Link
     df['gmaps_link'] = df.apply(lambda row: f"https://www.google.com/maps?q={row['lat']},{row['lon']}", axis=1)
     return df
 
@@ -66,10 +64,14 @@ st.markdown("""
         padding: 2.5rem; color: white; border-radius: 20px; margin-bottom: 2rem;
         box-shadow: 0 10px 30px rgba(26, 35, 126, 0.2);
     }
-    .registration-form {
-        background-color: #ffffff; padding: 30px; border-radius: 20px;
-        border: 1px solid #e0e0e0; margin-top: 25px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    .analysis-card {
+        background: white; border-radius: 15px; padding: 20px;
+        border-left: 5px solid #1a237e; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    .legend-box {
+        padding: 10px; border-radius: 10px; background: white; 
+        border: 1px solid #ddd; display: inline-block; margin-right: 10px;
     }
     .product-btn {
         display: block; width: 100%; text-align: center;
@@ -77,22 +79,6 @@ st.markdown("""
         color: white !important; padding: 20px; border-radius: 15px;
         text-decoration: none; font-weight: bold; font-size: 1.2rem;
         margin-top: 20px; box-shadow: 0 5px 15px rgba(245, 124, 0, 0.3);
-        transition: 0.3s;
-    }
-    .confirm-btn {
-        display: block; width: 100%; text-align: center;
-        background: #2e7d32; color: white !important;
-        padding: 15px; border-radius: 12px; text-decoration: none;
-        font-weight: bold; margin-top: 15px; font-size: 1.1rem;
-    }
-    .legend-box {
-        padding: 10px; border-radius: 10px; background: white; 
-        border: 1px solid #ddd; display: inline-block; margin-right: 10px;
-    }
-    .analysis-card {
-        background: white; border-radius: 15px; padding: 20px;
-        border-left: 5px solid #1a237e; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -104,17 +90,15 @@ st.markdown(f"""
             <img src="https://lh3.googleusercontent.com/d/1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n" style="width:120px; border-radius:10px;">
             <div>
                 <h1 style="color:white; margin:0; font-size:2.5rem;">Solar Assistant Pro</h1>
-                <p style="font-size:1.1rem; opacity:0.9;">วิเคราะห์โครงสร้างพื้นฐานและจุดสมดุลพลังงาน (Grid Balance Analysis)</p>
+                <p style="font-size:1.1rem; opacity:0.9;">วิเคราะห์โหลดหม้อแปลงไฟฟ้าจำหน่าย (Single Transformer Analysis)</p>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-# --- แท็บเมนูหลัก ---
-tab1, tab2 = st.tabs(["💡 วิเคราะห์การติดตั้งรายบ้าน", "🗺️ แผนภูมิความร้อนและจุดสมดุล (Grid Balance Map)"])
+tab1, tab2 = st.tabs(["💡 วิเคราะห์การติดตั้งรายบ้าน", "🗺️ วิเคราะห์โหลดหม้อแปลง (Transformer Balance)"])
 
 with tab1:
-    # --- Input Section (Sidebar) ---
     with st.sidebar:
         st.header("⚙️ ตั้งค่าการคำนวณ")
         unit_price = st.number_input("ค่าไฟฟ้าเฉลี่ย (บาท/หน่วย)", value=4.7, step=0.1)
@@ -123,7 +107,6 @@ with tab1:
         sun_hours = st.slider("ชั่วโมงแดดจัดเฉลี่ยต่อวัน", 3.0, 6.0, 4.2)
         system_loss = st.slider("System Loss (%)", 5, 30, 15) / 100
 
-    # --- 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน (Detailed Selection) ---
     st.markdown("### 📝 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน (09:00 - 16:00)")
     device_list = [
         {"item": "แอร์ 9,000 BTU (Inverter)", "watts": 800},
@@ -167,15 +150,14 @@ with tab1:
         with m2: st.metric("งบประมาณ", f"{pkg['price']:,} บาท")
         with m3: st.metric("คืนทุน", f"{payback:.1f} ปี")
         with m4: st.metric("กำไร 25 ปี", f"{(saving_year * 25) - pkg['price']:,.0f} บาท")
-        
         st.markdown(f'<a href="https://peasolar.pea.co.th/our-products/" target="_blank" class="product-btn">🔍 ดูรายละเอียดสเปกอุปกรณ์ {pkg["inverter_size"]}kW</a>', unsafe_allow_html=True)
     else:
         st.info("👆 กรุณาเลือกรายการเครื่องใช้ไฟฟ้าเพื่อให้ระบบเริ่มวิเคราะห์")
 
 with tab2:
-    st.markdown("### 🗺️ Infrastructure Density & Balance Map (อ.สมเด็จ)")
+    st.markdown("### 🗺️ Transformer TR-01 Load Balance Map")
+    st.info("จำลองสถานการณ์: หม้อแปลง 1 เครื่อง รองรับผู้ใช้ไฟที่มี Solar 2 ราย และ EV Charger 5 ราย")
     
-    # ดึงข้อมูลจำลอง
     grid_df = get_simulated_grid_data()
     solar_only = grid_df[grid_df['type'] == 'Solar PV Installed']
     ev_only = grid_df[grid_df['type'] == 'EV Wall Charger Request']
@@ -183,80 +165,73 @@ with tab2:
     # คำนวณค่าทางสถิติสำหรับ Balance
     total_solar_kw = solar_only['capacity_kw'].sum()
     total_ev_kw = ev_only['capacity_kw'].sum()
-    avg_day_load_reduction = total_solar_kw * 0.75 # คาดการณ์การผลิตไฟ 75%
-    night_load_increase = total_ev_kw * 0.8 # คาดการณ์การชาร์จพร้อมกัน 80%
+    avg_day_load_reduction = total_solar_kw * 0.7 # คาดการณ์การผลิตไฟ 70%
+    night_load_increase = total_ev_kw * 0.85 # คาดการณ์การชาร์จพร้อมกัน 85%
 
-    col_map, col_stat = st.columns([3, 1])
+    col_map, col_stat = st.columns([2.5, 1])
 
     with col_stat:
-        st.markdown("#### ⚡ Grid Analytics")
+        st.markdown("#### ⚡ TR-01 Analytics")
         st.markdown(f"""
         <div class="analysis-card">
-            <small>ช่วงกลางวัน (09:00-16:00)</small><br>
-            <b>โหลดลดลงสะสม: -{avg_day_load_reduction:.1f} kW</b><br>
-            <p style="font-size:0.8rem; color:gray;">(จาก Solar PV {len(solar_only)} ราย)</p>
+            <small>ช่วงกลางวัน (ลดโหลดหม้อแปลง)</small><br>
+            <b>Net Load Δ: -{avg_day_load_reduction:.1f} kW</b><br>
+            <p style="font-size:0.8rem; color:gray;">Solar รวม: {total_solar_kw} kW (2 ราย)</p>
         </div>
         <div class="analysis-card" style="border-left-color: #2e7d32;">
-            <small>ช่วงกลางคืน (22:00 เป็นต้นไป)</small><br>
-            <b>โหลดเพิ่มขึ้นสะสม: +{night_load_increase:.1f} kW</b><br>
-            <p style="font-size:0.8rem; color:gray;">(จาก EV Charger {len(ev_only)} ราย)</p>
+            <small>ช่วง 22:00 น. (เพิ่มโหลดหม้อแปลง)</small><br>
+            <b>Net Load Δ: +{night_load_increase:.1f} kW</b><br>
+            <p style="font-size:0.8rem; color:gray;">EV รวม: {total_ev_kw} kW (5 ราย)</p>
         </div>
         """, unsafe_allow_html=True)
         
-        balance_factor = night_load_increase - avg_day_load_reduction
-        status_color = "red" if balance_factor > 0 else "green"
-        st.warning(f"**Grid Balance:** {'โหลดกลางคืนสูงกว่า' if balance_factor > 0 else 'โหลดกลางวันลดลงมากกว่า'} {abs(balance_factor):.1f} kW")
-        st.info("💡 แนะนำให้เสริมกำลังหม้อแปลงในจุดที่มีความหนาแน่นสีเขียวเข้มเพื่อรองรับ EV Peak ตอน 22:00 น.")
+        balance_gap = night_load_increase - avg_day_load_reduction
+        st.error(f"**Transformer Stress:** {balance_gap:.1f} kW")
+        st.caption("ค่าความต่างระหว่างโหลดที่หายไปตอนกลางวันกับโหลดที่กระชากตอนดึก")
 
     with col_map:
-        view_state = pdk.ViewState(latitude=16.7115, longitude=103.7477, zoom=13, pitch=45)
+        view_state = pdk.ViewState(latitude=16.7115, longitude=103.7477, zoom=15, pitch=40)
 
         # Layers
-        solar_heatmap = pdk.Layer(
-            "HeatmapLayer", solar_only, get_position="[lon, lat]", get_weight="weight",
-            radius_pixels=50, intensity=0.8, threshold=0.05,
-            color_range=[[255,255,178],[254,178,76],[240,59,32],[189,0,38]] # ส้ม-แดง
-        )
-
-        ev_heatmap = pdk.Layer(
-            "HeatmapLayer", ev_only, get_position="[lon, lat]", get_weight="weight",
-            radius_pixels=50, intensity=0.8, threshold=0.05,
-            color_range=[[237,248,233],[116,196,118],[0,109,44]] # เขียว
-        )
-
         scatterplot = pdk.Layer(
             "ScatterplotLayer", grid_df, get_position="[lon, lat]",
             get_fill_color="color_rgb", get_line_color="line_color",
-            get_radius=50, line_width_min_pixels=2, pickable=True
+            get_radius=30, line_width_min_pixels=3, pickable=True
+        )
+
+        # วงรัศมีหม้อแปลง
+        tr_marker = pdk.Layer(
+            "ScatterplotLayer", pd.DataFrame({'lat': [16.7115], 'lon': [103.7477]}),
+            get_position="[lon, lat]", get_fill_color=[26, 35, 126, 100],
+            get_radius=300, pickable=False
         )
 
         st.pydeck_chart(pdk.Deck(
-            map_style="mapbox://styles/mapbox/dark-v10",
+            map_style="mapbox://styles/mapbox/light-v9",
             initial_view_state=view_state,
-            layers=[solar_heatmap, ev_heatmap, scatterplot],
-            tooltip={"text": "{id}\nประเภท: {type}\nขนาด: {capacity_kw} kW\nคลิกเพื่อดู Google Maps"}
+            layers=[tr_marker, scatterplot],
+            tooltip={"text": "{id}\nCapacity: {capacity_kw} kW\nคลิกเพื่อดู Google Maps"}
         ))
 
-    # Legend & Google Maps Instructions
     st.markdown("""
     <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <div class="legend-box"><span style="color: #FF4500;">●</span> จุดติดตั้ง Solar (กลางวันช่วยลดโหลด)</div>
-        <div class="legend-box"><span style="color: #39FF14;">●</span> จุดขอ EV (22:00 น. ดึงไฟพีค)</div>
+        <div class="legend-box"><span style="color: #FF4500;">●</span> Solar PV (2 ราย)</div>
+        <div class="legend-box"><span style="color: #39FF14;">●</span> EV Charger (5 ราย)</div>
+        <div class="legend-box"><span style="color: #1a237e33;">⬤</span> รัศมีบริการหม้อแปลง TR-01</div>
     </div>
     """, unsafe_allow_html=True)
     
     st.write("---")
-    st.subheader("📍 รายละเอียดจุดติดตั้งและลิงก์นำทาง")
+    st.subheader("📍 รายละเอียดจุดติดตั้งใต้หม้อแปลง TR-01")
     
-    # ตารางพร้อมลิงก์ Google Maps
     display_df = grid_df[['id', 'type', 'capacity_kw', 'gmaps_link']].copy()
     st.dataframe(
         display_df,
         column_config={
-            "gmaps_link": st.column_config.LinkColumn("เปิด Google Maps", display_text="ดูแผนที่ 🗺️")
+            "gmaps_link": st.column_config.LinkColumn("Google Maps", display_text="Open Map 🗺️")
         },
         use_container_width=True
     )
 
 st.divider()
-st.caption("Solar Assistant v6.5 | Infrastructure Map & Balance Analysis System")
+st.caption("Solar Assistant v6.8 | Single Transformer Load Analysis")
