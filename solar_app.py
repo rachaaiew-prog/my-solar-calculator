@@ -4,8 +4,8 @@ import math
 
 # --- การตั้งค่าหน้าเว็บ ---
 st.set_page_config(
-    page_title="Solar Purple Pro | วิเคราะห์ระบบโซลาร์เซลล์",
-    page_icon="🔮",
+    page_title="Solar Assistant | วิเคราะห์ระบบโซลาร์เซลล์",
+    page_icon="☀️",
     layout="wide"
 )
 
@@ -64,12 +64,18 @@ st.markdown("""
     /* Header Style */
     .app-header {
         background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-        padding: 3rem;
+        padding: 2.5rem;
         color: white;
         border-radius: 24px;
         margin-bottom: 2.5rem;
         text-align: center;
         box-shadow: 0 12px 24px rgba(106, 17, 203, 0.2);
+    }
+    
+    .pea-logo {
+        width: 80px;
+        margin-bottom: 1rem;
+        filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.2));
     }
     
     /* Card Style */
@@ -128,18 +134,20 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- ส่วนหัวของโปรแกรม ---
-st.markdown("""
+# ใช้โลโก้ PEA จาก URL ทางการ
+pea_logo_url = "https://www.pea.co.th/Portals/0/Images/logo.png"
+
+st.markdown(f"""
     <div class="app-header">
-        <h1 style='font-weight: 500;'>🔮 Solar Purple Investment Analyzer</h1>
-        <p style='font-size: 1.1rem; opacity: 0.9;'>วิเคราะห์ระบบโซลาร์เซลล์ด้วยระบบอัจฉริยะ (อ้างอิง Inverter Size)</p>
+        <img src="{pea_logo_url}" class="pea-logo" alt="PEA Logo">
+        <h1 style='font-weight: 500; margin-top: 0;'>Solar Assistant</h1>
+        <p style='font-size: 1.1rem; opacity: 0.9;'>วิเคราะห์ระบบโซลาร์เซลล์อัจฉริยะ โดย PEA Solar</p>
     </div>
     """, unsafe_allow_html=True)
 
 # --- แถบเมนูด้านข้าง (Sidebar) ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/3222/3222800.png", width=80)
-    st.title("Settings")
-    st.markdown("---")
+    st.markdown("### ⚙️ Settings")
     unit_price = st.number_input("ค่าไฟเฉลี่ย (บาท/หน่วย)", min_value=1.0, value=4.7, step=0.1)
     phase_type = st.radio("ระบบไฟฟ้าที่บ้าน", ["1 Phase (220V)", "3 Phase (380V)"])
     
@@ -155,7 +163,7 @@ with st.sidebar:
 
 # --- ขั้นตอนที่ 1: ประมาณการโหลด ---
 st.markdown("### 📝 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน")
-st.info("กรุณาเลือกอุปกรณ์ที่เปิดใช้งานในช่วง 09:00 - 16:00 เพื่อความแม่นยำในการคืนทุน")
+st.info("เลือกอุปกรณ์ที่เปิดใช้งานในช่วง 09:00 - 16:00 เพื่อคำนวณขนาด Inverter ที่เหมาะสม")
 
 device_list = [
     {"item": "แอร์ 9,000 BTU", "watts": 800, "icon": "❄️"},
@@ -243,11 +251,11 @@ if units_per_day > 0:
             <span style='background:#6a11cb; color:white; padding:4px 15px; border-radius:50px; font-size:0.8rem;'>RECOMMENDED</span>
         </div>
         <p style='margin-top:10px; font-size:1.1rem; color:#444;'>
-            เน้นการติดตั้งที่ได้มาตรฐานด้วย Inverter ขนาด <b>{suggested_pkg['inverter_size']} kW</b> 
+            ติดตั้งระบบที่ได้มาตรฐาน PEA ด้วย Inverter ขนาด <b>{suggested_pkg['inverter_size']} kW</b> 
             พร้อมแผงประสิทธิภาพสูงขนาด {panel_watt}W จำนวน {num_panels} แผง
         </p>
-        <h3 style='color:#2575fc; margin-bottom:5px;'>งบประมาณ: {suggested_pkg['price']:,} บาท</h3>
-        <p style='color:#888; font-size:0.85rem;'>* รวมค่าออกแบบ ติดตั้ง และขออนุญาตขนานไฟเรียบร้อยแล้ว (อ้างอิงราคา PEA Solar)</p>
+        <h3 style='color:#2575fc; margin-bottom:5px;'>งบประมาณติดตั้ง: {suggested_pkg['price']:,} บาท</h3>
+        <p style='color:#888; font-size:0.85rem;'>* รวมค่าออกแบบ ติดตั้ง และขออนุญาตขนานไฟกับ PEA เรียบร้อยแล้ว</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -280,4 +288,4 @@ else:
     st.warning("👈 กรุณาระบุเครื่องใช้ไฟฟ้าที่ต้องการใช้พลังงานแสงอาทิตย์")
 
 st.divider()
-st.markdown("<p style='text-align:center; color:#bbb;'>Solar Purple v2.0 | Reference: PEA Solar Standard Pricing</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#bbb;'>Solar Assistant v2.1 | Official PEA Solar Pricing Reference</p>", unsafe_allow_html=True)
