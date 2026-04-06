@@ -20,30 +20,32 @@ pea_packages = [
     {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000}
 ]
 
-# --- ข้อมูลจำลอง Map Data (Solar 15, Wall Charger 20 - อ.สมเด็จ จ.กาฬสินธุ์) ---
+# --- แก้ไขฟังก์ชัน Data (Fix ValueError: All arrays must be of the same length) ---
 def get_simulated_grid_data():
     base_lat, base_lon = 16.7115, 103.7477
     
     # 1. ข้อมูลผู้ติดตั้งโซล่าเซลล์ (15 รายการ)
+    solar_count = 15
     solar_data = pd.DataFrame({
-        'id': [f'S-{i:02d}' for i in range(1, 16)],
-        'lat': base_lat + np.random.randn(15) * 0.004,
-        'lon': base_lon + np.random.randn(15) * 0.004,
-        'capacity_kw': np.random.choice([3, 5, 10], 15),
-        'weight': np.random.uniform(0.5, 1.0, 15),
+        'id': [f'S-{i:02d}' for i in range(1, solar_count + 1)],
+        'lat': base_lat + np.random.randn(solar_count) * 0.004,
+        'lon': base_lon + np.random.randn(solar_count) * 0.004,
+        'capacity_kw': np.random.choice([3, 5, 10], solar_count),
+        'weight': np.random.uniform(0.5, 1.0, solar_count),
         'type': 'Solar PV Installed',
-        'color_rgb': [255, 75, 75] # สีแดง
+        'color_rgb': [[255, 75, 75]] * solar_count # แก้ไข: สร้าง list ของ list ให้เท่ากับจำนวนแถว
     })
     
     # 2. ข้อมูลผู้ขอใช้ไฟติดตั้ง Wall Charger (20 รายการ)
+    ev_count = 20
     ev_data = pd.DataFrame({
-        'id': [f'EV-{i:02d}' for i in range(1, 21)],
-        'lat': base_lat + np.random.randn(20) * 0.004,
-        'lon': base_lon + np.random.randn(20) * 0.004,
-        'capacity_kw': np.random.choice([7, 11, 22], 20),
-        'weight': np.random.uniform(0.5, 1.0, 20),
+        'id': [f'EV-{i:02d}' for i in range(1, ev_count + 1)],
+        'lat': base_lat + np.random.randn(ev_count) * 0.004,
+        'lon': base_lon + np.random.randn(ev_count) * 0.004,
+        'capacity_kw': np.random.choice([7, 11, 22], ev_count),
+        'weight': np.random.uniform(0.5, 1.0, ev_count),
         'type': 'Wall Charger Request',
-        'color_rgb': [46, 125, 50] # สีเขียว
+        'color_rgb': [[46, 125, 50]] * ev_count # แก้ไข: สร้าง list ของ list ให้เท่ากับจำนวนแถว
     })
     
     return pd.concat([solar_data, ev_data], ignore_index=True)
@@ -147,17 +149,38 @@ with tab1:
         st.markdown(f'<a href="https://peasolar.pea.co.th/our-products/" target="_blank" class="product-btn">🔍 ดูรายละเอียดแพ็กเกจ {pkg["inverter_size"]}kW</a>', unsafe_allow_html=True)
 
         st.markdown('<div class="registration-form">', unsafe_allow_html=True)
-        st.subheader("📥 สนใจรับคำปรึกษาและใบเสนอราคา")
+        st.subheader("📥 บันทึกข้อมูลและขอใบเสนอราคา")
         with st.form("solar_registration"):
             col_a, col_b = st.columns(2)
-            with col_a: name = st.text_input("ชื่อ-นามสกุล *")
-            with col_b: phone = st.text_input("เบอร์โทรศัพท์ *")
-            addr = st.text_input("สถานที่ติดตั้ง หรือ พิกัด GPS")
-            if st.form_submit_button("🚀 ส่งข้อมูลขอใบเสนอราคา"):
-                if name and phone:
-                    st.success(f"บันทึกข้อมูลคุณ {name} เรียบร้อย ทีมงานจะติดต่อกลับโดยเร็วที่สุด")
+            with col_a: name = st.text_input("ชื่อ *")
+            with col_b: surname = st.text_input("นามสกุล *")
+            
+            col_c, col_d = st.columns(2)
+            with col_c: phone = st.text_input("เบอร์โทรศัพท์ *")
+            with col_d: lat_long = st.text_input("พิกัด (lat, long) *", placeholder="16.7115, 103.7477")
+            
+            st.info(f"ระบบจะส่งข้อมูลขนาดที่แนะนำ: {pkg['inverter_size']} kW ไปยังฐานข้อมูล")
+            
+            if st.form_submit_button("🚀 ส่งข้อมูล (Google Forms)"):
+                if name and surname and phone and lat_long:
+                    # สร้าง Google Form URL พร้อม Pre-fill Data (อ้างอิงจากภาพ Google Form ของคุณ)
+                    form_id = "1FAIpQLSclm-IwbIB85XoWuO_P8C-o8qHzQyYP4t7Gdvzcc6LpcWgoog"
+                    # จำลอง entry ID (ต้องตรวจสอบจาก Google Form จริงของคุณอีกครั้ง)
+                    params = {
+                        "entry.1983389523": f"{pkg['inverter_size']} kW", # ขนาดแนะนำ
+                        "entry.1966863461": lat_long, # พิกัด
+                        "entry.1234567890": name, # ชื่อ (สมมติ ID)
+                        "entry.1112223334": surname, # นามสกุล (สมมติ ID)
+                        "entry.5556667778": phone, # เบอร์โทร (สมมติ ID)
+                    }
+                    query_string = urllib.parse.urlencode(params)
+                    form_url = f"https://docs.google.com/forms/d/e/{form_id}/formResponse?{query_string}&submit=Submit"
+                    
+                    # ใน Streamlit Cloud เรามักจะใช้ลิ้งค์ให้กดยืนยัน หรือใช้ requests.post ในเบื้องหลัง
+                    st.success(f"เตรียมส่งข้อมูลคุณ {name} เรียบร้อย!")
+                    st.markdown(f"[คลิกที่นี่เพื่อยืนยันการส่งข้อมูลไปยังระบบเก็บข้อมูล]({form_url})")
                 else:
-                    st.error("กรุณากรอกชื่อและเบอร์โทรศัพท์")
+                    st.error("กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง")
         st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.info("👆 กรุณาเลือกรายการเครื่องใช้ไฟฟ้าเพื่อคำนวณขนาดระบบที่เหมาะสม")
@@ -241,4 +264,4 @@ with tab2:
     """, unsafe_allow_html=True)
 
 st.divider()
-st.caption("Solar Assistant v7.1 | Infrastructure Demand Analysis & Residential Planning")
+st.caption("Solar Assistant v7.2 | Google Form Integration & Fix ValueError")
