@@ -99,6 +99,8 @@ device_list = [
     {"item": "แอร์ 9,000 BTU", "watts": 800, "icon": "❄️"},
     {"item": "แอร์ 12,000 BTU", "watts": 1100, "icon": "❄️"},
     {"item": "แอร์ 18,000 BTU", "watts": 1600, "icon": "❄️"},
+    {"item": "แอร์ 24,000 BTU", "watts": 2200, "icon": "❄️"},
+    {"item": "ทีวี (LED TV)", "watts": 150, "icon": "📺"},
     {"item": "Wall Charger 7 kW", "watts": 7000, "icon": "🔌"},
     {"item": "ตู้เย็น/อื่นๆ", "watts": 300, "icon": "🧊"},
 ]
@@ -202,4 +204,4 @@ else:
     st.warning("👈 กรุณาเลือกอุปกรณ์ไฟฟ้าที่ใช้งานเพื่อคำนวณระบบที่เหมาะสม")
 
 st.divider()
-st.markdown("<p style='text-align:center; color:#999;'>Solar Assistant v4.1 | ระบบวิเคราะห์และบันทึกข้อมูล</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#999;'>Solar Assistant v4.2 | ระบบวิเคราะห์และบันทึกข้อมูล</p>", unsafe_allow_html=True)
