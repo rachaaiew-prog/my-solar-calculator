@@ -20,18 +20,19 @@ pea_packages = [
     {"name": "Max Solar (3 Phase)", "inverter_size": 20.0, "pv_size": 22.68, "price": 750000}
 ]
 
-# --- ฟังก์ชันจำลองข้อมูลสำหรับ Heat Map (เน้นหม้อแปลง 1 เครื่อง: Solar 2, EV 5) ---
+# --- ฟังก์ชันจำลองข้อมูลสำหรับ Heat Map (เน้นหม้อแปลงเฉพาะ: Solar 2, EV 5) ---
 def get_simulated_grid_data():
     # พิกัดตำแหน่งหม้อแปลง (ศูนย์กลาง)
     base_lat, base_lon = 16.7115, 103.7477
+    tr_name = "TR 250 (บ้านหนองแวง) 56-02564"
     
     # 1. ข้อมูลผู้ติดตั้งโซล่าเซลล์ (2 ราย)
     solar_data = pd.DataFrame({
-        'id': ['Solar-01 (TR-01)', 'Solar-02 (TR-01)'],
+        'id': [f'Solar-01 ({tr_name})', f'Solar-02 ({tr_name})'],
         'lat': [base_lat + 0.0012, base_lat - 0.0008],
         'lon': [base_lon + 0.0009, base_lon - 0.0011],
         'capacity_kw': [5, 10],
-        'phase_connection': ['Phase A', '3 Phase'], # เพิ่มข้อมูลเฟส
+        'phase_connection': ['Phase A', '3 Phase'],
         'weight': [0.9, 1.0],
         'type': 'Solar PV Installed',
         'color_rgb': [[255, 69, 0, 230]] * 2, 
@@ -40,11 +41,11 @@ def get_simulated_grid_data():
     
     # 2. ข้อมูลผู้ขอใช้ไฟติดตั้ง Wall Charger (5 ราย)
     ev_data = pd.DataFrame({
-        'id': [f'EV-{i:02d} (TR-01)' for i in range(1, 6)],
+        'id': [f'EV-{i:02d} ({tr_name})' for i in range(1, 6)],
         'lat': [base_lat + 0.002, base_lat + 0.0015, base_lat - 0.001, base_lat - 0.002, base_lat + 0.0005],
         'lon': [base_lon + 0.001, base_lon - 0.0015, base_lon + 0.002, base_lon + 0.0005, base_lon - 0.0025],
         'capacity_kw': [7, 7, 11, 7, 22],
-        'phase_connection': ['Phase B', 'Phase C', 'Phase A', 'Phase B', '3 Phase'], # เพิ่มข้อมูลเฟส
+        'phase_connection': ['Phase B', 'Phase C', 'Phase A', 'Phase B', '3 Phase'],
         'weight': [0.7, 0.7, 0.8, 0.7, 1.0],
         'type': 'EV Wall Charger Request',
         'color_rgb': [[57, 255, 20, 230]] * 5,
@@ -80,12 +81,29 @@ st.markdown("""
         padding: 10px; border-radius: 10px; background: white; 
         border: 1px solid #ddd; display: inline-block; margin-right: 10px;
     }
+    /* ปุ่มวิเคราะห์สินค้า */
     .product-btn {
         display: block; width: 100%; text-align: center;
         background: linear-gradient(90deg, #ff9800, #f57c00);
         color: white !important; padding: 20px; border-radius: 15px;
         text-decoration: none; font-weight: bold; font-size: 1.2rem;
         margin-top: 20px; box-shadow: 0 5px 15px rgba(245, 124, 0, 0.3);
+    }
+    /* แก้ไขสีปุ่มส่งข้อมูลใน Streamlit */
+    div.stButton > button:first-child {
+        background-color: #2e7d32;
+        color: white;
+        border-radius: 12px;
+        border: none;
+        padding: 10px 24px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #1b5e20;
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
+        border: none;
+        color: white;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -179,8 +197,9 @@ with tab1:
         st.info("👆 กรุณาเลือกรายการเครื่องใช้ไฟฟ้าเพื่อให้ระบบเริ่มวิเคราะห์")
 
 with tab2:
-    st.markdown("### 🗺️ Transformer TR-01 Load Balance Map")
-    st.info("จำลองสถานการณ์: หม้อแปลง 1 เครื่อง รองรับผู้ใช้ไฟที่มี Solar 2 ราย และ EV Charger 5 ราย")
+    tr_full_id = "TR 250 (บ้านหนองแวง) 56-02564"
+    st.markdown(f"### 🗺️ Transformer {tr_full_id} Load Balance Map")
+    st.info(f"จำลองสถานการณ์: หม้อแปลง {tr_full_id} รองรับผู้ใช้ไฟที่มี Solar 2 ราย และ EV Charger 5 ราย")
     
     grid_df = get_simulated_grid_data()
     solar_only = grid_df[grid_df['type'] == 'Solar PV Installed']
@@ -195,7 +214,7 @@ with tab2:
     col_map, col_stat = st.columns([2.5, 1])
 
     with col_stat:
-        st.markdown("#### ⚡ TR-01 Analytics")
+        st.markdown(f"#### ⚡ {tr_full_id} Analytics")
         st.markdown(f"""
         <div class="analysis-card">
             <small>ช่วงกลางวัน (ลดโหลดหม้อแปลง)</small><br>
@@ -233,7 +252,7 @@ with tab2:
         ))
 
     st.write("---")
-    st.subheader("📍 รายละเอียดจุดติดตั้งและการเชื่อมต่อเฟส (TR-01)")
+    st.subheader(f"📍 รายละเอียดจุดติดตั้งและการเชื่อมต่อเฟส ({tr_full_id})")
     
     # แสดงตารางแยกตามประเภทพร้อมระบุเฟส
     c_solar, c_ev = st.columns(2)
@@ -263,4 +282,4 @@ with tab2:
         )
 
 st.divider()
-st.caption("Solar Assistant v7.0 | Phase Balance & Transformer Analysis")
+st.caption(f"Solar Assistant v7.1 | {tr_full_id} Phase Analysis")
