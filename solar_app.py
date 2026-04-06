@@ -62,22 +62,59 @@ st.markdown("""
         background-color: #f1eeff;
     }
     
-    /* Header Style: Gradient ม่วงเข้มไปม่วงสว่าง */
+    /* Header Style: ปรับปรุงใหม่ให้โลโก้อยู่ซ้าย และมีภาพประกอบขวา */
     .app-header {
         background: linear-gradient(135deg, #4a148c 0%, #7b1fa2 50%, #9c27b0 100%);
-        padding: 2rem;
+        padding: 2.5rem;
         color: white;
         border-radius: 28px;
         margin-bottom: 2.5rem;
-        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         box-shadow: 0 15px 35px rgba(74, 20, 140, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        z-index: 2;
     }
     
     .pea-logo {
-        width: 140px; /* ปรับขนาดโลโก้ตามความเหมาะสม */
+        width: 180px; /* ขยายโลโก้ให้ใหญ่ขึ้น */
         height: auto;
-        margin-bottom: 1rem;
         filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+    }
+    
+    .header-text h1 {
+        color: white !important; /* บังคับสีขาว */
+        margin: 0;
+        font-weight: 500;
+        letter-spacing: 1px;
+        font-size: 2.5rem;
+    }
+    
+    .header-text p {
+        color: rgba(255, 255, 255, 0.9) !important; /* สีขาวโปร่งแสงเล็กน้อย */
+        margin: 5px 0 0 0;
+        font-size: 1.15rem;
+    }
+
+    .header-right {
+        z-index: 2;
+        display: flex;
+        align-items: center;
+    }
+
+    /* ตกแต่งด้วยภาพพลังงานสะอาด (SVG) */
+    .solar-icon {
+        width: 120px;
+        height: 120px;
+        opacity: 0.9;
     }
     
     /* Card Style: เน้นขอบม่วง */
@@ -100,7 +137,7 @@ st.markdown("""
     
     /* สไตล์สำหรับแถวที่เลือก (Selected Device Row) */
     .selected-row {
-        background-color: #d1c4e9 !important; /* ม่วงที่เข้มข้นขึ้น */
+        background-color: #d1c4e9 !important;
         border-radius: 12px;
         padding: 5px;
         margin-bottom: 5px;
@@ -143,16 +180,25 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- ส่วนหัวของโปรแกรม ---
-# แปลง Google Drive Link เป็น Direct Link สำหรับแสดงผล
-# ID ของไฟล์คือ: 1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n
+# --- ส่วนหัวของโปรแกรม (Header) ---
 logo_url = "https://lh3.googleusercontent.com/d/1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n"
 
 st.markdown(f"""
     <div class="app-header">
-        <img src="{logo_url}" class="pea-logo" alt="PEA Logo">
-        <h1 style='font-weight: 500; margin-top: 0; letter-spacing: 1px;'>Solar Assistant</h1>
-        <p style='font-size: 1.15rem; opacity: 0.95;'>ระบบวิเคราะห์การลงทุนโซลาร์เซลล์อัจฉริยะ (PEA Solar Standard)</p>
+        <div class="header-left">
+            <img src="{logo_url}" class="pea-logo" alt="PEA Logo">
+            <div class="header-text">
+                <h1>Solar Assistant</h1>
+                <p>ระบบวิเคราะห์การลงทุนโซลาร์เซลล์อัจฉริยะ (PEA Solar Standard)</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <!-- ภาพ SVG บ่งบอกถึงพลังงานแสงอาทิตย์และพลังงานสะอาด -->
+            <svg class="solar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 7V3M12 21V17M5.63604 5.63604L8.46447 8.46447M15.5355 15.5355L18.364 18.364M3 12H7M17 12H21M5.63604 18.364L8.46447 15.5355M15.5355 8.46447L18.364 5.63604M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 12L12 12.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -305,4 +351,4 @@ else:
     st.warning("👈 เลือกเครื่องใช้ไฟฟ้าด้านบนเพื่อประมวลผลระบบที่เหมาะสม")
 
 st.divider()
-st.markdown("<p style='text-align:center; color:#999; font-size:0.9rem;'>Solar Assistant v2.2 | Powered by PEA Solar Data</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#999; font-size:0.9rem;'>Solar Assistant v2.3 | Powered by PEA Solar Data</p>", unsafe_allow_html=True)
