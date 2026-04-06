@@ -56,19 +56,18 @@ def get_simulated_grid_data():
     df['gmaps_link'] = df.apply(lambda row: f"https://www.google.com/maps?q={row['lat']},{row['lon']}", axis=1)
     return df
 
-# --- Custom CSS ปรับโทนสีม่วงและตัวหนังสือขาว ---
+# --- Custom CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
     
-    /* โครงสร้างพื้นฐาน */
     html, body, [class*="css"] { 
         font-family: 'Kanit', sans-serif; 
         color: #1f2937 !important;
     }
     
     .stApp { 
-        background-color: #f3f0ff; /* พื้นหลังสีม่วงอ่อนมาก */
+        background-color: #f3f0ff; 
     }
     
     [data-testid="stSidebar"] {
@@ -76,9 +75,8 @@ st.markdown("""
         border-right: 1px solid #ddd6fe;
     }
 
-    /* Header Section - ปรับเป็นสีม่วงเข้ม ตัวหนังสือขาว */
     .app-header {
-        background: #6d28d9; /* สีม่วงเข้ม */
+        background: #6d28d9; 
         padding: 2rem;
         margin: -1rem -5rem 1.5rem -5rem;
         border-bottom: 5px solid #4c1d95;
@@ -87,16 +85,15 @@ st.markdown("""
     .header-title {
         font-size: 2.8rem;
         font-weight: 600;
-        color: #ffffff !important; /* ตัวหนังสือขาว */
+        color: #ffffff !important; 
         margin: 0;
     }
     .header-subtitle {
         font-size: 1.1rem;
-        color: #ddd6fe !important; /* ตัวหนังสือสีม่วงอ่อนสว่าง */
+        color: #ddd6fe !important; 
         margin-top: 5px;
     }
 
-    /* กล่องการ์ด */
     .analysis-card {
         background: #ffffff;
         border-radius: 16px;
@@ -106,7 +103,6 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(109, 40, 217, 0.1);
     }
     
-    /* ฟอร์มลงทะเบียน */
     .registration-form {
         background: #ffffff;
         padding: 30px;
@@ -116,7 +112,6 @@ st.markdown("""
         box-shadow: 0 10px 15px -3px rgba(109, 40, 217, 0.2);
     }
 
-    /* Tabs */
     .stTabs [data-baseweb="tab-list"] {
         background-color: #ede9fe;
         border-radius: 12px;
@@ -128,7 +123,6 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* ปุ่มสีม่วง */
     .product-btn {
         display: block; width: 100%; text-align: center;
         background: #7c3aed;
@@ -148,10 +142,6 @@ st.markdown("""
         padding: 12px 24px;
         width: 100%;
         font-weight: 600;
-    }
-    div.stButton > button:hover {
-        background-color: #7c3aed;
-        border: none;
     }
     
     [data-testid="stMetricValue"] {
@@ -181,6 +171,8 @@ with tab1:
         system_loss = st.slider("System Loss (%)", 5, 30, 15) / 100
 
     st.markdown("### 📝 ข้อมูลการใช้ไฟฟ้ากลางวัน")
+    
+    # รายการเครื่องใช้ไฟฟ้ามาตรฐาน (นำ "อุปกรณ์อื่นๆ" ออกแล้ว)
     device_list = [
         {"item": "แอร์ 9,000 BTU (Inverter)", "watts": 800},
         {"item": "แอร์ 12,000 BTU (Inverter)", "watts": 1100},
@@ -189,11 +181,11 @@ with tab1:
         {"item": "ปั๊มน้ำ (Water Pump)", "watts": 350},
         {"item": "พัดลม (Fan)", "watts": 60},
         {"item": "Wall Charger 7 kW (EV)", "watts": 7000},
-  
     ]
 
     total_daily_wh = 0
-    # ส่วนของรายการปกติ
+    
+    # แสดงรายการมาตรฐาน
     for i, dev in enumerate(device_list):
         c1, c2, c3 = st.columns([3, 2, 2])
         with c1: chosen = st.checkbox(dev['item'], key=f"u_{i}")
@@ -202,16 +194,39 @@ with tab1:
         if chosen and qty > 0: 
             total_daily_wh += (dev['watts'] * qty * hrs)
     
-    # ส่วนที่ 1: เพิ่มช่องระบุเครื่องใช้ไฟฟ้าและกิโลวัตต์เอง
     st.markdown("---")
-    st.markdown("##### ➕ เพิ่มเครื่องใช้ไฟฟ้าอื่นๆ")
-    with st.expander("คลิกเพื่อระบุเครื่องใช้ไฟฟ้าด้วยตนเอง"):
-        custom_col1, custom_col2, custom_col3, custom_col4 = st.columns([3, 2, 2, 1])
-        custom_name = custom_col1.text_input("ชื่อเครื่องใช้ไฟฟ้า", placeholder="เช่น ตู้แช่")
-        custom_watts = custom_col2.number_input("กำลังไฟฟ้า (วัตต์)", min_value=0, step=10, value=0)
-        custom_hrs = custom_col3.number_input("ชม. การใช้งาน/วัน", min_value=0, max_value=24, value=0)
-        if custom_watts > 0 and custom_hrs > 0:
-            total_daily_wh += (custom_watts * custom_hrs)
+    st.markdown("##### ➕ เพิ่มเครื่องใช้ไฟฟ้าอื่นๆ (กำหนดเอง)")
+
+    # ส่วนการจัดการ Dynamic List สำหรับเครื่องใช้ไฟฟ้ากำหนดเอง
+    if 'custom_devices' not in st.session_state:
+        st.session_state.custom_devices = []
+
+    def add_custom_device():
+        st.session_state.custom_devices.append({"name": "", "watts": 0, "hrs": 0})
+
+    def remove_custom_device(index):
+        st.session_state.custom_devices.pop(index)
+
+    # ปุ่มเพิ่มแถว
+    st.button("➕ เพิ่มรายการใหม่", on_click=add_custom_device)
+
+    # วนลูปแสดงรายการที่เพิ่มเข้ามา
+    for idx, cd in enumerate(st.session_state.custom_devices):
+        cc1, cc2, cc3, cc4 = st.columns([3, 2, 2, 1])
+        with cc1:
+            st.session_state.custom_devices[idx]["name"] = st.text_input(f"ชื่ออุปกรณ์ {idx+1}", value=cd["name"], key=f"cn_{idx}", placeholder="เช่น ตู้แช่")
+        with cc2:
+            st.session_state.custom_devices[idx]["watts"] = st.number_input(f"วัตต์ {idx+1}", min_value=0, value=cd["watts"], key=f"cw_{idx}")
+        with cc3:
+            st.session_state.custom_devices[idx]["hrs"] = st.number_input(f"ชม./วัน {idx+1}", min_value=0, max_value=24, value=cd["hrs"], key=f"ch_{idx}")
+        with cc4:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🗑️", key=f"remove_{idx}"):
+                remove_custom_device(idx)
+                st.rerun()
+        
+        # คำนวณพลังงานจากรายการที่เพิ่ม
+        total_daily_wh += (st.session_state.custom_devices[idx]["watts"] * st.session_state.custom_devices[idx]["hrs"])
 
     units_per_day = total_daily_wh / 1000
 
@@ -249,11 +264,9 @@ with tab1:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
-    # ส่วนที่ 2: ระบุ capacity, เปอร์เซ็นต์จ่ายโหลด และ unbalance load
     tr_id = "TR 250 (บ้านหนองแวง) 56-02564"
     st.markdown(f"### 📍 ข้อมูลเชิงเทคนิคหม้อแปลง {tr_id}")
     
-    # ข้อมูลหม้อแปลงสมมติ
     tr_capacity_kva = 250
     peak_load_percent = 78.5
     unbalance_percent = 12.4
