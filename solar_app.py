@@ -48,7 +48,7 @@ pea_packages = [
     }
 ]
 
-# --- Custom CSS สำหรับธีมม่วงทันสมัย ---
+# --- Custom CSS สำหรับธีมม่วงที่เข้มข้นขึ้น ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap');
@@ -57,44 +57,44 @@ st.markdown("""
         font-family: 'Kanit', sans-serif;
     }
     
-    /* ปรับแต่งสีพื้นหลังหลักให้เป็นม่วงอมขาว (Off-white Purple) */
+    /* พื้นหลังม่วงอมขาวที่ม่วงชัดเจนขึ้น (Rich Lavender Tint) */
     .stApp {
-        background-color: #f9f8ff;
+        background-color: #f1eeff;
     }
     
-    /* Header Style */
+    /* Header Style: Gradient ม่วงเข้มไปม่วงสว่าง */
     .app-header {
-        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        background: linear-gradient(135deg, #4a148c 0%, #7b1fa2 50%, #9c27b0 100%);
         padding: 2.5rem;
         color: white;
-        border-radius: 24px;
+        border-radius: 28px;
         margin-bottom: 2.5rem;
         text-align: center;
-        box-shadow: 0 12px 24px rgba(106, 17, 203, 0.2);
+        box-shadow: 0 15px 35px rgba(74, 20, 140, 0.25);
     }
     
     .pea-logo {
-        width: 80px;
+        width: 90px;
         margin-bottom: 1rem;
-        filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.2));
+        filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.3));
     }
     
-    /* Card Style */
+    /* Card Style: เน้นขอบม่วง */
     .stMetric {
         background-color: white !important;
         padding: 24px !important;
         border-radius: 20px !important;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.04) !important;
-        border: 1px solid #eee !important;
+        box-shadow: 0 10px 20px rgba(74, 20, 140, 0.05) !important;
+        border: 1px solid #e1bee7 !important;
     }
     
     .package-card {
         background-color: white;
         padding: 2rem;
-        border-radius: 20px;
-        border-right: 10px solid #6a11cb;
+        border-radius: 24px;
+        border-left: 12px solid #6a11cb;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        box-shadow: 0 12px 30px rgba(106, 17, 203, 0.1);
     }
     
     /* Tab Style */
@@ -102,69 +102,66 @@ st.markdown("""
         gap: 24px;
     }
 
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        background-color: transparent;
-        border-radius: 4px 4px 0px 0px;
-        gap: 1px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
-
     .stTabs [aria-selected="true"] {
-        color: #6a11cb !important;
-        border-bottom-color: #6a11cb !important;
+        color: #4a148c !important;
+        border-bottom-color: #4a148c !important;
         font-weight: bold;
     }
     
-    /* Button Customization */
+    /* Button: ม่วงเข้ม */
     div.stButton > button:first-child {
-        background-color: #6a11cb;
+        background: linear-gradient(90deg, #4a148c, #7b1fa2);
         color: white;
-        border-radius: 12px;
-        padding: 0.5rem 2rem;
+        border-radius: 14px;
+        padding: 0.6rem 2.5rem;
         border: none;
+        font-weight: 500;
         transition: all 0.3s;
     }
     div.stButton > button:first-child:hover {
-        background-color: #2575fc;
+        background: linear-gradient(90deg, #7b1fa2, #4a148c);
         transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(74, 20, 140, 0.3);
+    }
+
+    /* Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #f8f6ff;
+        border-right: 1px solid #e1bee7;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # --- ส่วนหัวของโปรแกรม ---
-# ใช้โลโก้ PEA จาก URL ทางการ
 pea_logo_url = "https://www.pea.co.th/Portals/0/Images/logo.png"
 
 st.markdown(f"""
     <div class="app-header">
         <img src="{pea_logo_url}" class="pea-logo" alt="PEA Logo">
-        <h1 style='font-weight: 500; margin-top: 0;'>Solar Assistant</h1>
-        <p style='font-size: 1.1rem; opacity: 0.9;'>วิเคราะห์ระบบโซลาร์เซลล์อัจฉริยะ โดย PEA Solar</p>
+        <h1 style='font-weight: 500; margin-top: 0; letter-spacing: 1px;'>Solar Assistant</h1>
+        <p style='font-size: 1.15rem; opacity: 0.95;'>ระบบวิเคราะห์การลงทุนโซลาร์เซลล์อัจฉริยะ (PEA Solar Standard)</p>
     </div>
     """, unsafe_allow_html=True)
 
 # --- แถบเมนูด้านข้าง (Sidebar) ---
 with st.sidebar:
-    st.markdown("### ⚙️ Settings")
+    st.markdown("### 🔮 ตั้งค่าระบบ")
     unit_price = st.number_input("ค่าไฟเฉลี่ย (บาท/หน่วย)", min_value=1.0, value=4.7, step=0.1)
     phase_type = st.radio("ระบบไฟฟ้าที่บ้าน", ["1 Phase (220V)", "3 Phase (380V)"])
     
     st.divider()
-    st.markdown("### 📦 ข้อมูลทางเทคนิค")
+    st.markdown("### ⚡ ข้อมูลอุปกรณ์")
     panel_watt = 630  
-    st.caption(f"มาตรฐานแผง: {panel_watt}W Mono Half-Cut")
+    st.caption(f"แผงมาตรฐาน: {panel_watt}W Mono Half-Cut")
     
     st.divider()
-    st.markdown("### 🌍 ตัวแปรการผลิต")
-    sun_hours = st.slider("ชั่วโมงแดดผลิตไฟเฉลี่ย/วัน", 3.0, 6.0, 4.2)
+    st.markdown("### ☀️ ปัจจัยการผลิต")
+    sun_hours = st.slider("ชั่วโมงแดดเฉลี่ย/วัน", 3.0, 6.0, 4.2)
     system_loss = st.slider("System Loss (%)", 5, 30, 15) / 100
 
 # --- ขั้นตอนที่ 1: ประมาณการโหลด ---
-st.markdown("### 📝 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน")
-st.info("เลือกอุปกรณ์ที่เปิดใช้งานในช่วง 09:00 - 16:00 เพื่อคำนวณขนาด Inverter ที่เหมาะสม")
+st.markdown("### 📝 1. ระบุการใช้ไฟฟ้าช่วงกลางวัน (09:00 - 16:00)")
+st.info("ระบุอุปกรณ์ที่ใช้งานเพื่อหาขนาด Inverter ที่รองรับโหลดได้จริง")
 
 device_list = [
     {"item": "แอร์ 9,000 BTU", "watts": 800, "icon": "❄️"},
@@ -201,20 +198,17 @@ units_per_day = total_daily_wh / 1000
 # --- ขั้นตอนที่ 2: วิเคราะห์และแนะนำ ---
 if units_per_day > 0:
     st.divider()
-    st.markdown("### 📊 2. แพ็กเกจที่แนะนำสำหรับคุณ")
+    st.markdown("### 📊 2. ผลการวิเคราะห์แพ็กเกจ")
     
-    # Logic การคำนวณ Inverter
     eff_factor = 1 - system_loss
     target_inverter_kw = units_per_day / (sun_hours * eff_factor)
     
-    # กรองตามเฟส
     is_1phase = phase_type == "1 Phase (220V)"
     available_packages = [
         pkg for pkg in pea_packages 
         if (is_1phase and "1 Phase" in pkg['name']) or (not is_1phase and "3 Phase" in pkg['name'])
     ]
 
-    # เลือกแพ็กเกจตามขนาด Inverter
     suggested_pkg = None
     for pkg in available_packages:
         if pkg['inverter_size'] >= target_inverter_kw:
@@ -227,41 +221,36 @@ if units_per_day > 0:
     if not suggested_pkg:
         suggested_pkg = pea_packages[0]
 
-    # คำนวณแผง 630W
     num_panels = math.ceil((suggested_pkg['pv_size'] * 1000) / panel_watt)
     actual_pv_kwp = (num_panels * panel_watt) / 1000
 
-    # Display Metrics
     m1, m2, m3 = st.columns(3)
     with m1:
-        st.metric("Inverter Recommended", f"{suggested_pkg['inverter_size']} kW")
+        st.metric("Inverter Size", f"{suggested_pkg['inverter_size']} kW")
     with m2:
-        st.metric("Total PV Panels", f"{num_panels} แผง")
+        st.metric("PV Modules (630W)", f"{num_panels} แผง")
     with m3:
-        st.metric("Estimated Investment", f"{suggested_pkg['price']:,} ฿")
+        st.metric("Total Investment", f"{suggested_pkg['price']:,} ฿")
 
-    # Warning for Phase Limit
     if is_1phase and target_inverter_kw > 5.0:
-        st.error("⚠️ โหลดของคุณสูงเกินระบบ 1-Phase (5kW) แนะนำให้พิจารณาปรับปรุงระบบไฟฟ้าเป็น 3-Phase")
+        st.error("⚠️ โหลดของคุณเกินขีดจำกัด 5kW สำหรับระบบ 1 เฟส แนะนำให้เปลี่ยนเป็นระบบ 3 เฟส")
 
-    # Package Card UI
     st.markdown(f"""
     <div class="package-card">
         <div style='display: flex; justify-content: space-between; align-items: center;'>
-            <h2 style='color:#6a11cb; margin:0;'>{suggested_pkg['name']}</h2>
-            <span style='background:#6a11cb; color:white; padding:4px 15px; border-radius:50px; font-size:0.8rem;'>RECOMMENDED</span>
+            <h2 style='color:#4a148c; margin:0;'>{suggested_pkg['name']}</h2>
+            <span style='background:linear-gradient(90deg, #6a11cb, #2575fc); color:white; padding:6px 18px; border-radius:50px; font-size:0.85rem; font-weight:500;'>MATCHED</span>
         </div>
-        <p style='margin-top:10px; font-size:1.1rem; color:#444;'>
-            ติดตั้งระบบที่ได้มาตรฐาน PEA ด้วย Inverter ขนาด <b>{suggested_pkg['inverter_size']} kW</b> 
-            พร้อมแผงประสิทธิภาพสูงขนาด {panel_watt}W จำนวน {num_panels} แผง
+        <p style='margin-top:15px; font-size:1.15rem; color:#333;'>
+            ระบบที่เหมาะสมที่สุดคือ Inverter ขนาด <b>{suggested_pkg['inverter_size']} kW</b> 
+            ติดตั้งร่วมกับแผง Mono {panel_watt}W จำนวน {num_panels} แผง
         </p>
-        <h3 style='color:#2575fc; margin-bottom:5px;'>งบประมาณติดตั้ง: {suggested_pkg['price']:,} บาท</h3>
-        <p style='color:#888; font-size:0.85rem;'>* รวมค่าออกแบบ ติดตั้ง และขออนุญาตขนานไฟกับ PEA เรียบร้อยแล้ว</p>
+        <h3 style='color:#7b1fa2; margin-bottom:8px;'>งบประมาณรวม: {suggested_pkg['price']:,} บาท</h3>
+        <p style='color:#777; font-size:0.85rem;'>* ราคาประมาณการเบื้องต้น รวมอุปกรณ์และค่าดำเนินการขออนุญาตตามเกณฑ์ PEA</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Analytics Tabs
-    tab_finance, tab_compare = st.tabs(["💰 การวิเคราะห์การคืนทุน", "📋 ตารางเปรียบเทียบทุกรุ่น"])
+    tab_finance, tab_compare = st.tabs(["💰 การคืนทุน (ROI)", "📋 รายละเอียดแพ็กเกจทั้งหมด"])
     
     with tab_finance:
         pkg_prod_day = actual_pv_kwp * sun_hours * eff_factor
@@ -269,24 +258,26 @@ if units_per_day > 0:
         annual_save = monthly_save * 12
         payback_years = suggested_pkg['price'] / annual_save if annual_save > 0 else 0
         
-        c1, c2 = st.columns([1, 1])
+        c1, c2 = st.columns([1, 1.2])
         with c1:
-            st.markdown(f"#### สรุปความคุ้มค่า")
-            st.write(f"📉 ประหยัดค่าไฟได้ประมาณ: **{monthly_save:,.0f} บาท/เดือน**")
-            st.write(f"💸 ประหยัดรวมต่อปี: **{annual_save:,.0f} บาท/ปี**")
-            st.write(f"⏳ ระยะเวลาคืนทุน: **{payback_years:.1f} ปี**")
+            st.markdown(f"#### วิเคราะห์รายได้")
+            st.markdown(f"""
+            - **ประหยัดค่าไฟ:** {monthly_save:,.0f} บาท/เดือน
+            - **ประหยัดรายปี:** {annual_save:,.0f} บาท/ปี
+            - **จุดคุ้มทุน:** ประมาณ {payback_years:.1f} ปี
+            """)
         with c2:
             years = list(range(0, 11))
             cashflow = [-suggested_pkg['price'] + (annual_save * y) for y in years]
-            st.line_chart(pd.DataFrame({"Year": years, "Net Profit/Loss": cashflow}).set_index("Year"))
+            st.line_chart(pd.DataFrame({"Year": years, "Cumulative Profit": cashflow}).set_index("Year"))
 
     with tab_compare:
         df_pkg = pd.DataFrame(pea_packages)
-        df_pkg.columns = ["Model", "Inverter (kW)", "PV (kWp)", "Price (THB)", "Details"]
-        st.table(df_pkg.style.format({"Price (THB)": "{:,.0f}"}))
+        df_pkg.columns = ["Model", "Inverter (kW)", "Total PV (kWp)", "Price (THB)", "Notes"]
+        st.dataframe(df_pkg.style.format({"Price (THB)": "{:,.0f}"}), use_container_width=True)
 
 else:
-    st.warning("👈 กรุณาระบุเครื่องใช้ไฟฟ้าที่ต้องการใช้พลังงานแสงอาทิตย์")
+    st.warning("👈 เลือกเครื่องใช้ไฟฟ้าใน Sidebar เพื่อประมวลผลระบบที่เหมาะสม")
 
 st.divider()
-st.markdown("<p style='text-align:center; color:#bbb;'>Solar Assistant v2.1 | Official PEA Solar Pricing Reference</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#999; font-size:0.9rem;'>Solar Assistant v2.2 | Powered by PEA Solar Data</p>", unsafe_allow_html=True)
