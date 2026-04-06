@@ -185,18 +185,33 @@ with tab1:
         {"item": "แอร์ 9,000 BTU (Inverter)", "watts": 800},
         {"item": "แอร์ 12,000 BTU (Inverter)", "watts": 1100},
         {"item": "แอร์ 18,000 BTU (Inverter)", "watts": 1600},
+        {"item": "แอร์ 24,000 BTU (Inverter)", "watts": 2200},
+        {"item": "ปั๊มน้ำ (Water Pump)", "watts": 350},
+        {"item": "พัดลม (Fan)", "watts": 60},
         {"item": "Wall Charger 7 kW (EV)", "watts": 7000},
         {"item": "อุปกรณ์อื่นๆ", "watts": 500},
     ]
 
     total_daily_wh = 0
+    # ส่วนของรายการปกติ
     for i, dev in enumerate(device_list):
         c1, c2, c3 = st.columns([3, 2, 2])
         with c1: chosen = st.checkbox(dev['item'], key=f"u_{i}")
         with c2: qty = st.number_input(f"จำนวน - {i}", min_value=0, value=0, key=f"q_{i}", label_visibility="collapsed")
-        with c3: hrs = st.number_input(f"ชม. - {i}", min_value=0, max_value=24, value=0, key=f"h_{i}", label_visibility="collapsed")
+        with c3: hrs = st.number_input(f"ชม./วัน - {i}", min_value=0, max_value=24, value=0, key=f"h_{i}", label_visibility="collapsed")
         if chosen and qty > 0: 
             total_daily_wh += (dev['watts'] * qty * hrs)
+    
+    # ส่วนที่ 1: เพิ่มช่องระบุเครื่องใช้ไฟฟ้าและกิโลวัตต์เอง
+    st.markdown("---")
+    st.markdown("##### ➕ เพิ่มเครื่องใช้ไฟฟ้าอื่นๆ")
+    with st.expander("คลิกเพื่อระบุเครื่องใช้ไฟฟ้าด้วยตนเอง"):
+        custom_col1, custom_col2, custom_col3, custom_col4 = st.columns([3, 2, 2, 1])
+        custom_name = custom_col1.text_input("ชื่อเครื่องใช้ไฟฟ้า", placeholder="เช่น ตู้แช่")
+        custom_watts = custom_col2.number_input("กำลังไฟฟ้า (วัตต์)", min_value=0, step=10, value=0)
+        custom_hrs = custom_col3.number_input("ชม. การใช้งาน/วัน", min_value=0, max_value=24, value=0)
+        if custom_watts > 0 and custom_hrs > 0:
+            total_daily_wh += (custom_watts * custom_hrs)
 
     units_per_day = total_daily_wh / 1000
 
@@ -234,15 +249,44 @@ with tab1:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
+    # ส่วนที่ 2: ระบุ capacity, เปอร์เซ็นต์จ่ายโหลด และ unbalance load
     tr_id = "TR 250 (บ้านหนองแวง) 56-02564"
-    st.markdown(f"### 📍 แผนภูมิโครงข่ายไฟฟ้า {tr_id}")
+    st.markdown(f"### 📍 ข้อมูลเชิงเทคนิคหม้อแปลง {tr_id}")
     
+    # ข้อมูลหม้อแปลงสมมติ
+    tr_capacity_kva = 250
+    peak_load_percent = 78.5
+    unbalance_percent = 12.4
+    
+    tr_col1, tr_col2, tr_col3 = st.columns(3)
+    with tr_col1:
+        st.markdown(f"""
+        <div class="analysis-card">
+            <small style="color: #6b7280;">Capacity</small><br>
+            <span style="font-size:1.6rem; font-weight:600; color: #6d28d9;">{tr_capacity_kva} kVA</span>
+        </div>
+        """, unsafe_allow_html=True)
+    with tr_col2:
+        st.markdown(f"""
+        <div class="analysis-card">
+            <small style="color: #6b7280;">Peak Load</small><br>
+            <span style="font-size:1.6rem; font-weight:600; color: #9a3412;">{peak_load_percent}%</span>
+        </div>
+        """, unsafe_allow_html=True)
+    with tr_col3:
+        st.markdown(f"""
+        <div class="analysis-card">
+            <small style="color: #6b7280;">Unbalance Load</small><br>
+            <span style="font-size:1.6rem; font-weight:600; color: #dc2626;">{unbalance_percent}%</span>
+        </div>
+        """, unsafe_allow_html=True)
+
     grid_df = get_simulated_grid_data()
     
     col_map, col_stat = st.columns([2.5, 1])
 
     with col_stat:
-        st.markdown("#### 📊 สถิติภาระโหลด")
+        st.markdown("#### 📊 สถิติภาระโหลดรายเฟส")
         total_solar = grid_df[grid_df['type'] == 'Solar PV Installed']['capacity_kw'].sum()
         total_ev = grid_df[grid_df['type'] == 'EV Wall Charger Request']['capacity_kw'].sum()
         
