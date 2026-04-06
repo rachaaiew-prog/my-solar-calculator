@@ -74,12 +74,10 @@ st.markdown("""
     }
     
     .pea-logo {
-        width: 120px;
-        background-color: white;
-        padding: 10px;
-        border-radius: 15px;
+        width: 140px; /* ปรับขนาดโลโก้ตามความเหมาะสม */
+        height: auto;
         margin-bottom: 1rem;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+        filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
     }
     
     /* Card Style: เน้นขอบม่วง */
@@ -146,12 +144,13 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- ส่วนหัวของโปรแกรม ---
-# เปลี่ยนมาใช้ URL ที่เสถียรขึ้น หรือแสดงเป็นข้อความสำรองหากรูปโหลดไม่ได้
-pea_logo_url = "https://drive.google.com/file/d/1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n/view?usp=sharing" # ใช้เป็นไอคอนขนาดเล็กแทน หรือหา Direct Link ที่ชัวร์กว่า
+# แปลง Google Drive Link เป็น Direct Link สำหรับแสดงผล
+# ID ของไฟล์คือ: 1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n
+logo_url = "https://lh3.googleusercontent.com/d/1RDUD8icYRqrf1s_HuwCsKABQjoD8OP0n"
 
 st.markdown(f"""
     <div class="app-header">
-        <div style="font-size: 3rem; margin-bottom: 10px;">⚡</div>
+        <img src="{logo_url}" class="pea-logo" alt="PEA Logo">
         <h1 style='font-weight: 500; margin-top: 0; letter-spacing: 1px;'>Solar Assistant</h1>
         <p style='font-size: 1.15rem; opacity: 0.95;'>ระบบวิเคราะห์การลงทุนโซลาร์เซลล์อัจฉริยะ (PEA Solar Standard)</p>
     </div>
@@ -200,16 +199,13 @@ with col_h2: st.markdown("**จำนวน**")
 with col_h3: st.markdown("**ชั่วโมง/วัน**")
 
 for i, dev in enumerate(device_list):
-    # ใช้ session_state เพื่อเช็คว่าติ๊กเลือกหรือยัง
     is_checked = st.session_state.get(f"use_{i}", False)
     
-    # ถ้าติ๊กเลือก ให้คลุมด้วย div selected-row
     if is_checked:
         st.markdown(f'<div class="selected-row">', unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns([2, 1, 1])
     with c1:
-        # กำหนด key เพื่อให้ Streamlit จำสถานะได้
         chosen = st.checkbox(f"{dev['icon']} {dev['item']}", key=f"use_{i}")
     with c2:
         qty = st.number_input("จำนวน", min_value=0, value=0, key=f"qty_{i}", label_visibility="collapsed")
