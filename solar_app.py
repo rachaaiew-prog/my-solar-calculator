@@ -69,6 +69,11 @@ st.markdown("""
         border-left: 5px solid #1a237e; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         margin-bottom: 20px;
     }
+    .registration-form {
+        background-color: #ffffff; padding: 30px; border-radius: 20px;
+        border: 1px solid #e0e0e0; margin-top: 25px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
     .legend-box {
         padding: 10px; border-radius: 10px; background: white; 
         border: 1px solid #ddd; display: inline-block; margin-right: 10px;
@@ -79,6 +84,12 @@ st.markdown("""
         color: white !important; padding: 20px; border-radius: 15px;
         text-decoration: none; font-weight: bold; font-size: 1.2rem;
         margin-top: 20px; box-shadow: 0 5px 15px rgba(245, 124, 0, 0.3);
+    }
+    .confirm-btn {
+        display: block; width: 100%; text-align: center;
+        background: #2e7d32; color: white !important;
+        padding: 15px; border-radius: 12px; text-decoration: none;
+        font-weight: bold; margin-top: 15px; font-size: 1.1rem;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -151,6 +162,23 @@ with tab1:
         with m3: st.metric("คืนทุน", f"{payback:.1f} ปี")
         with m4: st.metric("กำไร 25 ปี", f"{(saving_year * 25) - pkg['price']:,.0f} บาท")
         st.markdown(f'<a href="https://peasolar.pea.co.th/our-products/" target="_blank" class="product-btn">🔍 ดูรายละเอียดสเปกอุปกรณ์ {pkg["inverter_size"]}kW</a>', unsafe_allow_html=True)
+
+        # --- ฟอร์มลงทะเบียนข้อมูลลูกค้า ---
+        st.markdown('<div class="registration-form">', unsafe_allow_html=True)
+        st.markdown("### 📞 ลงทะเบียนขอรับคำปรึกษา / สำรวจหน้างาน")
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            cust_name = st.text_input("ชื่อ-นามสกุล ผู้ติดต่อ")
+            cust_phone = st.text_input("เบอร์โทรศัพท์")
+        with col_f2:
+            cust_address = st.text_area("ที่อยู่ติดตั้ง / จุดสังเกต")
+        
+        if st.button("ยืนยันข้อมูลและส่งเรื่อง", use_container_width=True):
+            if cust_name and cust_phone:
+                st.success(f"ขอบคุณคุณ {cust_name} ระบบบันทึกข้อมูลเรียบร้อย เจ้าหน้าที่จะติดต่อกลับที่เบอร์ {cust_phone}")
+            else:
+                st.error("กรุณากรอกข้อมูลชื่อและเบอร์โทรศัพท์ให้ครบถ้วน")
+        st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.info("👆 กรุณาเลือกรายการเครื่องใช้ไฟฟ้าเพื่อให้ระบบเริ่มวิเคราะห์")
 
@@ -234,4 +262,4 @@ with tab2:
     )
 
 st.divider()
-st.caption("Solar Assistant v6.8 | Single Transformer Load Analysis")
+st.caption("Solar Assistant v6.9 | Single Transformer Load Analysis")
